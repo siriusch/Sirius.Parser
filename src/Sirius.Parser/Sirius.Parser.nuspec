@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+	<metadata>
+		<id>Sirius.Parser</id>
+		<version>1.0.0</version>
+		<authors>siriusch</authors>
+		<owners>siriusch</owners>
+		<licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+		<projectUrl>https://github.com/siriusch/Sirius.Parser</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>.NET Library for computing parsing tables and perform parsing</description>
+		<copyright>Copyright 2018 Sirius Technologies AG</copyright>
+		<tags>Sirius Parser</tags>
+		<dependencies>
+			<dependency id="Sirius.Common" version="1.0.2" />
+			<dependency id="Sirius.RegularExpressions" version="1.0.3" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="bin\$Configuration$\Sirius.Parser.dll" target="lib/net461"  />
+		<file src="bin\$Configuration$\Sirius.Parser.pdb" target="lib/net461" />
+		<!--file src="bin\$Configuration$\Sirius.Parser.xml" target="lib/net461" /-->
+	</files>
+</package>

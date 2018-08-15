@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5A7BBEE3-1001-4E3E-9195-249A335FBD87}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Sirius.Parser</RootNamespace>
+    <AssemblyName>Sirius.Parser</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <KeyContainerName>SiriusKey</KeyContainerName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Sirius.Common, Version=1.0.3.0, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sirius.Common.1.0.3\lib\net461\Sirius.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Sirius.Parser.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Grammar\GrammarBuilder.cs" />
+    <Compile Include="Grammar\IGrammarData.cs" />
+    <Compile Include="Grammar\Production.cs" />
+    <Compile Include="Grammar\SymbolKind.cs" />
+    <Compile Include="Lalr\AcceptAction.cs" />
+    <Compile Include="Lalr\ActionType.cs" />
+    <Compile Include="Lalr\ErrorAction.cs" />
+    <Compile Include="Lalr\GotoAction.cs" />
+    <Compile Include="Lalr\LalrAction.cs" />
+    <Compile Include="Lalr\LalrTable.cs" />
+    <Compile Include="Lalr\LalrTableGenerator.cs" />
+    <Compile Include="Lalr\LrItem.cs" />
+    <Compile Include="Lalr\LrItemSet.cs" />
+    <Compile Include="Lalr\LrItemSetCollection.cs" />
+    <Compile Include="Lalr\ProductionKey.cs" />
+    <Compile Include="Lalr\ProductionRule.cs" />
+    <Compile Include="Lalr\ReduceAction.cs" />
+    <Compile Include="Lalr\ReduceMultiAction.cs" />
+    <Compile Include="Lalr\ReduceSingleAction.cs" />
+    <Compile Include="Lalr\ShiftAction.cs" />
+    <Compile Include="Lalr\SymbolMeta.cs" />
+    <Compile Include="Lalr\SymbolMetaDictionary.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="ParserBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
