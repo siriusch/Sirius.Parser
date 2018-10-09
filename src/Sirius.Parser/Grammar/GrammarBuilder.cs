@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,9 +6,8 @@ namespace Sirius.Parser.Grammar {
 	public class GrammarBuilder: IGrammarData, IEnumerable<Production> {
 		private readonly Dictionary<SymbolId, Production> productions = new Dictionary<SymbolId, Production>();
 
-		public GrammarBuilder(SymbolId unknown, SymbolId eof, SymbolId init, SymbolId start, IReadOnlyDictionary<SymbolId, SymbolKind> allSymbols = null) {
+		public GrammarBuilder(SymbolId unknown, SymbolId init, SymbolId start, IReadOnlyDictionary<SymbolId, SymbolKind> allSymbols = null) {
 			this.Unknown = unknown;
-			this.Eof = eof;
 			this.Init = init;
 			this.Start = start;
 			this.AllSymbols = allSymbols;
@@ -33,11 +32,6 @@ namespace Sirius.Parser.Grammar {
 			set;
 		}
 
-		public SymbolId Eof {
-			get;
-			set;
-		}
-
 		public SymbolId Init {
 			get;
 			set;
@@ -57,8 +51,8 @@ namespace Sirius.Parser.Grammar {
 
 		private IEnumerable<KeyValuePair<SymbolId, SymbolKind>> ComputeSymbols() {
 			var allSymbols = new HashSet<SymbolId> {
+					SymbolId.Eof,
 					this.Unknown,
-					this.Eof,
 					this.Init,
 					this.Start
 			};

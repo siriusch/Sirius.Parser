@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Sirius.Parser.Grammar {
 	public interface IGrammarData {
 		SymbolId Unknown {
-			get;
-		}
-
-		SymbolId Eof {
 			get;
 		}
 

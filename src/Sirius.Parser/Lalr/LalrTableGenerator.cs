@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -24,7 +24,7 @@ namespace Sirius.Parser.Lalr {
 		public LalrTableGenerator(IGrammarData data): base() {
 			this.symbols = data.Symbols.ToDictionary();
 			this.Unknown = AssertTerminal(data.Unknown, nameof(this.Unknown));
-			this.Eof = AssertTerminal(data.Eof, nameof(this.Eof));
+			this.Eof = AssertTerminal(SymbolId.Eof, nameof(this.Eof));
 			this.Init = AssertNonterminal(data.Init, nameof(this.Init));
 			this.Start = AssertNonterminal(data.Start, nameof(this.Start));
 			var productionKeys = new HashSet<ProductionKey>();
