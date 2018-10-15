@@ -12,8 +12,7 @@
 		<copyright>Copyright 2018 Sirius Technologies AG</copyright>
 		<tags>Sirius Parser</tags>
 		<dependencies>
-			<dependency id="Sirius.Common" version="1.0.2" />
-			<dependency id="Sirius.RegularExpressions" version="1.0.3" />
+			<dependency id="Sirius.Common" version="1.0.8" />
 		</dependencies>
 	</metadata>
 	<files>

@@ -96,52 +96,49 @@ namespace Sirius.Parser {
 		private static readonly SymbolId whitespace = 21;
 
 		private static readonly Func<SymbolId, string> Resolve = ((IReadOnlyDictionary<SymbolId, string>)new Dictionary<SymbolId, string>() {
-				{SymbolId.Eof, "(EOF)"},
-				{exprDash, "<ExprDash>"},
-				{exprDot, "<ExprDot>"},
-				{exprUnary, "<ExprUnary>"},
-				{exprValue, "<ExprValue>"},
-				{opPlus, "OpPlus"},
-				{opMinus, "OpMinus"},
-				{opMultiply, "OpMultiply"},
-				{opDivide, "OpDivide"},
-				{braceOpen, "BraceOpen"},
-				{braceClose, "BraceClose"},
-				{number, "Number"},
-				{whitespace, "Whitespace"},
-		}).CreateGetter();
+						{SymbolId.Eof, "(EOF)"},
+						{exprDash, "<ExprDash>"},
+						{exprDot, "<ExprDot>"},
+						{exprUnary, "<ExprUnary>"},
+						{exprValue, "<ExprValue>"},
+						{opPlus, "OpPlus"},
+						{opMinus, "OpMinus"},
+						{opMultiply, "OpMultiply"},
+						{opDivide, "OpDivide"},
+						{braceOpen, "BraceOpen"},
+						{braceClose, "BraceClose"},
+						{number, "Number"},
+						{whitespace, "Whitespace"},
+				})
+				.CreateGetter();
 
-		private static readonly Lazy<LalrTable> ExpressionLalrTable = new Lazy<LalrTable>(() => {
-			var grammarBuilder = new GrammarBuilder(unknown, init, exprDash) {
-					{exprDash, exprDash, opPlus, exprDot},
-					{exprDash, exprDash, opMinus, exprDot},
-					{exprDash, exprDot},
-					{exprDot, exprDot, opMultiply, exprUnary},
-					{exprDot, exprDot, opDivide, exprUnary},
-					{exprDot, exprUnary},
-					{exprUnary, opMinus, exprValue},
-					{exprUnary, exprValue},
-					{exprValue, braceOpen, exprDash, braceClose},
-					{exprValue, number},
-			};
-			var table = new LalrTableGenerator(grammarBuilder).ComputeTable();
-			return table;
-		}, LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<LalrTable> ExpressionLalrTable = new Lazy<LalrTable>(() =>
+				new LalrTableGenerator(new GrammarBuilder(unknown, init, exprDash) {
+								{exprDash, exprDash, opPlus, exprDot},
+								{exprDash, exprDash, opMinus, exprDot},
+								{exprDash, exprDot},
+								{exprDot, exprDot, opMultiply, exprUnary},
+								{exprDot, exprDot, opDivide, exprUnary},
+								{exprDot, exprUnary},
+								{exprUnary, opMinus, exprValue},
+								{exprUnary, exprValue},
+								{exprValue, braceOpen, exprDash, braceClose},
+								{exprValue, number},
+						})
+						.ComputeTable(), LazyThreadSafetyMode.PublicationOnly);
 
-		private static readonly Lazy<Dfa<char>> ExpressionDfa = new Lazy<Dfa<char>>(() => {
-			var lexerBuilder = new LexerBuilder<char>(new UnicodeUtf16Mapper(false, false), Utf16Chars.EOF) {
-					{whitespace, @"\s+"},
-					{braceOpen, @"\("},
-					{braceClose, @"\)"},
-					{number, @"[0-9]+"},
-					{opPlus, @"\+"},
-					{opMinus, @"-"},
-					{opMultiply, @"\*"},
-					{opDivide, @"\/"}
-			};
-			var dfa = lexerBuilder.ComputeDfa();
-			return dfa;
-		}, LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<Dfa<char>> ExpressionDfa = new Lazy<Dfa<char>>(() =>
+				new LexerBuilder<char>(new UnicodeUtf16Mapper(false, false), Utf16Chars.EOF) {
+								{whitespace, @"\s+"},
+								{braceOpen, @"\("},
+								{braceClose, @"\)"},
+								{number, @"[0-9]+"},
+								{opPlus, @"\+"},
+								{opMinus, @"-"},
+								{opMultiply, @"\*"},
+								{opDivide, @"\/"}
+						}
+						.ComputeDfa(), LazyThreadSafetyMode.PublicationOnly);
 
 		private readonly ITestOutputHelper output;
 
