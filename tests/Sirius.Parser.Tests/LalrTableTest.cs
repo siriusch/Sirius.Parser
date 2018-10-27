@@ -146,6 +146,29 @@ namespace Sirius.Parser {
 			this.output = output;
 		}
 
+		public class ExpressionParser: ParserBase<char, Token, long> {
+			private readonly ITestOutputHelper output;
+
+			public ExpressionParser(ITestOutputHelper output, ParserContextBase<Token, char, long> context): base(ExpressionLalrTable.Value, context) {
+				this.output = output;
+			}
+
+			protected override Token CreateNonterminal(ProductionRule rule, IReadOnlyList<Token> tokens) {
+				return tokens.Count == 1 ? tokens[0] : new Token(rule.ProductionSymbolId, tokens);
+			}
+
+			protected override Token CreateTerminal(SymbolId symbol, Capture<char> data, long offset) {
+				var value = new string(data.ToArray());
+				this.output.WriteLine("Token: {0} {1}", Resolve(symbol), value);
+				return new Token(symbol, value);
+			}
+
+			protected override bool CheckAndPreprocessTerminal(ref SymbolId symbolId, Capture<char> letters, out long position) {
+				position = letters.Index;
+				return symbolId != whitespace;
+			}
+		}
+
 		[Theory]
 		[InlineData("10", true)]
 		[InlineData("(10)", true)]
@@ -156,13 +179,7 @@ namespace Sirius.Parser {
 		[InlineData("(1 + 2) * (3 + 4", false)]
 		public void ExpressionGrammar(string expression, bool success) {
 			var done = false;
-			var parser = new Parser<char, Token>(ExpressionLalrTable.Value,
-					(symbol, data, offset) => {
-						var value = new string(data.ToArray());
-						this.output.WriteLine("Token: {0} {1}", Resolve(symbol), value);
-						return new Token(symbol, value);
-					},
-					(rule, tokens) => tokens.Count == 1 ? tokens[0] : new Token(rule.ProductionSymbolId, tokens),
+			var parser = new ExpressionParser(this.output, new ParserContext<Token, char, long>(
 					token => {
 						this.output.WriteLine("");
 						this.output.WriteLine("Parse tree:");
@@ -171,7 +188,7 @@ namespace Sirius.Parser {
 						Assert.False(done);
 						done = true;
 					},
-					(stack, symbols) => {
+					(symbols, stack, symbol, value, position) => {
 						this.output.WriteLine("");
 						this.output.WriteLine("Syntax error, expected tokens:");
 						this.output.WriteLine(string.Join(", ", symbols.Select(Resolve)));
@@ -182,7 +199,8 @@ namespace Sirius.Parser {
 						Assert.False(success);
 						Assert.False(done);
 						done = true;
-					});
+						return null;
+					}));
 			var lexer = new Lexer<char>(ExpressionDfa.Value, parser.ProcessToken, whitespace);
 			lexer.Push(expression.Append(Utf16Chars.EOF).ToArray());
 			lexer.Terminate();

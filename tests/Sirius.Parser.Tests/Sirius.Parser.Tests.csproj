@@ -43,8 +43,8 @@
     <Reference Include="Sirius.Common, Version=1.0.8.28277, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Sirius.Common.1.0.8\lib\net461\Sirius.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Sirius.RegularExpressions, Version=1.0.4.3618, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sirius.RegularExpressions.1.0.4\lib\net461\Sirius.RegularExpressions.dll</HintPath>
+    <Reference Include="Sirius.RegularExpressions, Version=1.0.5.3540, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sirius.RegularExpressions.1.0.5\lib\net461\Sirius.RegularExpressions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -61,6 +61,7 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">

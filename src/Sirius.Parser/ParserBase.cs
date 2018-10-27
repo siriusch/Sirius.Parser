@@ -7,38 +7,16 @@ using Sirius.Parser.Lalr;
 
 namespace Sirius.Parser {
 	public abstract class ParserBase<TInput, TAstNode, TPosition> {
-		private class ParserState {
-			public ParserState(TAstNode node, int state, ParserState parent) {
-				this.Parent = parent;
-				this.Node = node;
-				this.State = state;
-			}
-
-			public TAstNode Node {
-				get;
-			}
-
-			public int State {
-				get;
-			}
-
-			public ParserState Parent {
-				get;
-			}
-		}
-
 		private readonly LalrTable table;
-		private ParserState currentState;
+		private readonly ParserContextBase<TAstNode, TInput, TPosition> context;
 
-		public ParserBase(LalrTable table) {
+		protected ParserBase(LalrTable table, ParserContextBase<TAstNode, TInput, TPosition> context) {
 			this.table = table;
-			this.currentState = new ParserState(default(TAstNode), table.StartState, null);
+			this.context = context;
 		}
-
-		protected abstract void Accept(TAstNode node);
 
 		private bool CanShift(SymbolId tokenSymbolId) {
-			var simulatedState = this.currentState;
+			var simulatedState = this.context.currentState;
 			for (;;) {
 				this.table.Action.TryGetValue(new StateKey<SymbolId>(simulatedState.State, tokenSymbolId), out var action);
 				switch (action) {
@@ -46,7 +24,7 @@ namespace Sirius.Parser {
 				case AcceptAction _:
 					return true;
 				case ReduceSingleAction reduceAction:
-					DoReduce(ref simulatedState, reduceAction, true);
+					DoReduce(ref simulatedState, reduceAction.ProductionRule, true);
 					continue;
 				default:
 					return false;
@@ -60,8 +38,7 @@ namespace Sirius.Parser {
 
 		protected abstract bool CheckAndPreprocessTerminal(ref SymbolId symbolId, Capture<TInput> letters, out TPosition position);
 
-		private void DoReduce(ref ParserState currentState, ReduceSingleAction reduceSingleAction, bool simulate) {
-			var rule = reduceSingleAction.ProductionRule;
+		private void DoReduce(ref ParserState<TAstNode> currentState, ProductionRule rule, bool simulate) {
 			// Take all AST nodes required for reduction from stack
 			var node = default(TAstNode);
 			if (simulate) {
@@ -80,43 +57,40 @@ namespace Sirius.Parser {
 			var topState = currentState.State;
 			var newState = ((GotoAction)this.table.Action[new StateKey<SymbolId>(topState, rule.ProductionSymbolId)]).NewState;
 			// Transition to the top state
-			currentState = new ParserState(node, newState, currentState);
+			currentState = new ParserState<TAstNode>(node, newState, currentState);
 		}
 
 		public virtual void ProcessToken(SymbolId tokenSymbolId, Capture<TInput> tokenValue) {
 			if (CheckAndPreprocessTerminal(ref tokenSymbolId, tokenValue, out var position)) {
-				var initialState = this.currentState;
+				var initialState = this.context.currentState;
 				for (;;) {
-					this.table.Action.TryGetValue(new StateKey<SymbolId>(this.currentState.State, tokenSymbolId), out var action);
+					this.table.Action.TryGetValue(new StateKey<SymbolId>(this.context.currentState.State, tokenSymbolId), out var action);
 					// Get the action type. If action is null, default to the 'Error' action
 					switch (action) {
 					case ShiftAction shiftAction:
-						this.currentState = new ParserState(CreateTerminal(tokenSymbolId, tokenValue, position), shiftAction.NewState, this.currentState);
+						this.context.currentState = new ParserState<TAstNode>(CreateTerminal(tokenSymbolId, tokenValue, position), shiftAction.NewState, this.context.currentState);
 						return;
 					case ReduceSingleAction reduceAction:
-						DoReduce(ref this.currentState, reduceAction, false);
+						DoReduce(ref this.context.currentState, reduceAction.ProductionRule, false);
 						// Keep reducing before moving to the next token
 						continue;
 					case AcceptAction _:
-						Accept(this.currentState.Node);
-						this.currentState = this.currentState.Parent;
-						Debug.Assert(this.currentState.Parent == null);
+						this.context.Accept(this.context.currentState.Node);
+						this.context.currentState = this.context.currentState.Parent;
+						Debug.Assert(this.context.currentState.Parent == null);
 						return;
 					default:
-						this.currentState = initialState;
-						SyntaxError(StateStack(), this.table.Action.Where(p => p.Key.State == this.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(CanShift), position);
+						this.context.currentState = initialState;
+						var expectedSymbols = this.table.Action.Where(p => p.Key.State == this.context.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(this.CanShift);
+						var retrySymbolId = this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+						if (retrySymbolId.HasValue && retrySymbolId != tokenSymbolId) {
+							tokenSymbolId = retrySymbolId.Value;
+							continue;
+						}
 						return;
 					}
 				}
 			}
 		}
-
-		private IEnumerable<TAstNode> StateStack() {
-			for (var current = this.currentState; current.Parent != null; current = current.Parent) {
-				yield return current.Node;
-			}
-		}
-
-		protected abstract void SyntaxError(IEnumerable<TAstNode> stack, IEnumerable<SymbolId> expectedSymbols, TPosition offset);
 	}
 }

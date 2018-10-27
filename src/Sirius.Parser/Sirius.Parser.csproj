@@ -50,6 +50,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Annotations.cs" />
     <Compile Include="Grammar\GrammarBuilder.cs" />
     <Compile Include="Grammar\IGrammarData.cs" />
     <Compile Include="Grammar\Production.cs" />
@@ -72,7 +73,6 @@
     <Compile Include="Lalr\ShiftAction.cs" />
     <Compile Include="Lalr\SymbolMeta.cs" />
     <Compile Include="Lalr\SymbolMetaDictionary.cs" />
-    <Compile Include="Parser.cs" />
     <Compile Include="ParserBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

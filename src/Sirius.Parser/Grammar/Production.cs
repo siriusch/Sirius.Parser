@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,8 +25,14 @@ namespace Sirius.Parser.Grammar {
 			return this.Rules.GetEnumerator();
 		}
 
-		public void Add(params SymbolId[] ruleSymbolIds) {
-			this.Rules.Add(new SymbolIdSequence(ruleSymbolIds));
+		public SymbolIdSequence Add(IEnumerable<SymbolId> ruleSymbolIds) {
+			var symbolIdSequence = new SymbolIdSequence(ruleSymbolIds);
+			this.Rules.Add(symbolIdSequence);
+			return symbolIdSequence;
+		}
+
+		public SymbolIdSequence Add(params SymbolId[] ruleSymbolIds) {
+			return Add((IEnumerable<SymbolId>)ruleSymbolIds);
 		}
 
 		public override string ToString() {
