@@ -78,6 +78,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Sirius.Parser.Grammars\Sirius.Parser.Grammars.csproj">
+      <Project>{9541AA36-D6A5-4B53-B0A4-54065840B4B9}</Project>
+      <Name>Sirius.Parser.Grammars</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Sirius.Parser\Sirius.Parser.csproj">
       <Project>{5a7bbee3-1001-4e3e-9195-249a335fbd87}</Project>
       <Name>Sirius.Parser</Name>
@@ -88,6 +92,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CharsetParserTest.cs" />
     <Compile Include="LalrTableTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

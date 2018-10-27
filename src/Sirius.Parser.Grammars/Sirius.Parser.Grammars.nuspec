@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Sirius.Parser.Grammars</id>
+    <version>1.0.0</version>
+    <authors>siriusch</authors>
+    <owners>siriusch</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/siriusch/Sirius.Parser</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>.NET Library for computing grammar-based parsers</description>
+    <copyright>Copyright 2018 Sirius Technologies AG</copyright>
+    <tags>Sirius Parser</tags>
+    <dependencies>
+      <dependency id="Sirius.Common" version="1.0.8" />
+      <dependency id="Sirius.Parser" version="0.0.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\$Configuration$\Sirius.Parser.Grammars.dll" target="lib/net461" />
+    <file src="bin\$Configuration$\Sirius.Parser.Grammars.pdb" target="lib/net461" />
+    <!--file src="bin\$Configuration$\Sirius.Parser.Grammars.xml" target="lib/net461" /-->
+  </files>
+</package>
