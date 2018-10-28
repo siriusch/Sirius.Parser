@@ -1,6 +1,6 @@
 using System;
 
-using Sirius.Parser.Grammars.Charset;
+using Sirius.Parser.Charset;
 using Sirius.RegularExpressions.Parser;
 using Sirius.Unicode;
 
@@ -21,15 +21,9 @@ namespace Sirius.Parser {
 		[InlineData("[^a-z] & {Letter}")]
 		[InlineData("[0-9] + {Letter}")]
 		public void ParseTest(string expression) {
-			var result = default(CharsetNode<Codepoint>);
-			var context = new ParserContext<CharsetNode<Codepoint>, char, long>(node => result = node);
-			var parser = new CharsetParser<Codepoint>(context);
-			var lexer = new CharsetLexer(parser.ProcessToken);
-			lexer.Push(expression);
-			lexer.Push(Utf16Chars.EOF);
-			Assert.NotNull(result);
 			var provider = new UnicodeCharSetProvider(UnicodeRanges.FromUnicodeName);
-			this.output.WriteLine(result.Compute(provider).ToString());
+			var result = CharsetParser.Parse(expression).Compute(provider);
+			this.output.WriteLine(result.ToString());
 		}
 
 		[Fact]

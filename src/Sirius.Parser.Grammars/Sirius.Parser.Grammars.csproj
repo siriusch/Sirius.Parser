@@ -7,7 +7,7 @@
     <ProjectGuid>{9541AA36-D6A5-4B53-B0A4-54065840B4B9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Sirius.Parser.Grammars</RootNamespace>
+    <RootNamespace>Sirius.Parser</RootNamespace>
     <AssemblyName>Sirius.Parser.Grammars</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -60,21 +60,25 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Gold\" />
-    <Folder Include="Semantic\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Charset\CharsetComputer.cs" />
     <Compile Include="Charset\CharsetDifference.cs" />
     <Compile Include="Charset\CharsetGrammar.cs" />
     <Compile Include="Charset\CharsetHandle.cs" />
-    <Compile Include="Charset\CharsetIntersect.cs" />
+    <Compile Include="Charset\CharsetHandleFinder.cs" />
+    <Compile Include="Charset\CharsetIntersection.cs" />
     <Compile Include="Charset\CharsetLexer.cs" />
     <Compile Include="Charset\CharsetNegate.cs" />
     <Compile Include="Charset\CharsetNode.cs" />
+    <Compile Include="Charset\CharsetNodeExtensions.cs" />
     <Compile Include="Charset\CharsetOperation.cs" />
     <Compile Include="Charset\CharsetParser.cs" />
     <Compile Include="Charset\CharsetSubtract.cs" />
     <Compile Include="Charset\CharsetUnion.cs" />
+    <Compile Include="Charset\ICharsetVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RxOfSymbol.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild" Condition="'$(build_number)' != ''">

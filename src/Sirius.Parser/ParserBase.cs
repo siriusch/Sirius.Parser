@@ -79,16 +79,14 @@ namespace Sirius.Parser {
 						this.context.currentState = this.context.currentState.Parent;
 						Debug.Assert(this.context.currentState.Parent == null);
 						return;
-					default:
-						this.context.currentState = initialState;
-						var expectedSymbols = this.table.Action.Where(p => p.Key.State == this.context.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(this.CanShift);
-						var retrySymbolId = this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
-						if (retrySymbolId.HasValue && retrySymbolId != tokenSymbolId) {
-							tokenSymbolId = retrySymbolId.Value;
-							continue;
-						}
+					}
+					this.context.currentState = initialState;
+					var expectedSymbols = this.table.Action.Where(p => p.Key.State == this.context.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(this.CanShift);
+					var retrySymbolId = this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+					if (!retrySymbolId.HasValue || retrySymbolId == tokenSymbolId) {
 						return;
 					}
+					tokenSymbolId = retrySymbolId.Value;
 				}
 			}
 		}

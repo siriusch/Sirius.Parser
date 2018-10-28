@@ -1,23 +1,18 @@
 using System;
 using System.Diagnostics;
 
-using Sirius.Collections;
-using Sirius.RegularExpressions.Parser;
-
-namespace Sirius.Parser.Grammars.Charset {
-	public class CharsetNegate<TChar>: CharsetNode<TChar>
-			where TChar: IComparable<TChar> {
-		public CharsetNegate(CharsetNode<TChar> node) {
+namespace Sirius.Parser.Charset {
+	public class CharsetNegate: CharsetNode {
+		public CharsetNegate(CharsetNode node) {
 			Debug.Assert(node != null, nameof(node) + " != null");
 			this.Node = node;
 		}
 
-		public CharsetNode<TChar> Node {
+		public CharsetNode Node {
 			get;
 		}
 
-		public override RangeSet<TChar> Compute(IRangeSetProvider<TChar> provider) {
-			return RangeSet<TChar>.Negate(this.Node.Compute(provider));
-		}
+		public override TResult Visit<TContext, TResult>(ICharsetVisitor<TContext, TResult> visitor, TContext context) {
+			return visitor.Negate(this, context);		}
 	}
 }

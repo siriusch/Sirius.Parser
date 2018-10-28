@@ -1,11 +1,9 @@
 using System;
 
-using Sirius.Collections;
 using Sirius.RegularExpressions.Parser;
 
-namespace Sirius.Parser.Grammars.Charset {
-	public class CharsetHandle<TChar>: CharsetNode<TChar>
-			where TChar: IComparable<TChar> {
+namespace Sirius.Parser.Charset {
+	public class CharsetHandle: CharsetNode {
 		public CharsetHandle(RangeSetHandle handle) {
 			this.Handle = handle;
 		}
@@ -14,9 +12,8 @@ namespace Sirius.Parser.Grammars.Charset {
 			get;
 		}
 
-		public override RangeSet<TChar> Compute(IRangeSetProvider<TChar> provider) {
-			var ranges = this.Handle.GetCharSet(provider);
-			return this.Handle.Negate ? provider.Negate(ranges) : ranges;
+		public override TResult Visit<TContext, TResult>(ICharsetVisitor<TContext, TResult> visitor, TContext context) {
+			return visitor.Handle(this, context);
 		}
 	}
 }

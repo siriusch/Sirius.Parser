@@ -74,6 +74,10 @@
     <Compile Include="Lalr\SymbolMeta.cs" />
     <Compile Include="Lalr\SymbolMetaDictionary.cs" />
     <Compile Include="ParserBase.cs" />
+    <Compile Include="ParserContext.cs" />
+    <Compile Include="ParserContextBase.cs" />
+    <Compile Include="ParserEmitter.cs" />
+    <Compile Include="ParserState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

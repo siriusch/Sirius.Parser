@@ -10,40 +10,8 @@ using Sirius.RegularExpressions.Invariant;
 using Sirius.RegularExpressions.Parser;
 using Sirius.Unicode;
 
-namespace Sirius.Parser.Grammars.Charset {
+namespace Sirius.Parser.Charset {
 	public sealed class CharsetGrammar {
-		private class RegexVisitor<TLetter>: IRegexVisitor<TLetter, SymbolId, RxNode<TLetter>>
-				where TLetter: IEquatable<TLetter>, IComparable<TLetter> {
-			public static readonly RegexVisitor<TLetter> Default = new RegexVisitor<TLetter>();
-
-			public RxNode<TLetter> Accept(RxAccept<TLetter> node, SymbolId context) {
-				if (node.Symbol == context) {
-					return node.Inner;
-				}
-				return node.Inner.Visit(this, context);
-			}
-
-			public RxNode<TLetter> Alternation(RxAlternation<TLetter> node, SymbolId context) {
-				return node.Left.Visit(this, context) ?? node.Right.Visit(this, context);
-			}
-
-			public RxNode<TLetter> Concatenation(RxConcatenation<TLetter> node, SymbolId context) {
-				return node.Left.Visit(this, context) ?? node.Right.Visit(this, context);
-			}
-
-			public RxNode<TLetter> Empty(RxEmpty<TLetter> node, SymbolId context) {
-				return null;
-			}
-
-			public RxNode<TLetter> Match(RxMatch<TLetter> node, SymbolId context) {
-				return null;
-			}
-
-			public RxNode<TLetter> Quantified(RxQuantified<TLetter> node, SymbolId context) {
-				return node.Inner.Visit(this, context);
-			}
-		}
-
 		public const int SymWhitespace = 0;
 		public const int SymCharset = 1;
 		public const int SymRegexCharset = 2;
@@ -67,6 +35,49 @@ namespace Sirius.Parser.Grammars.Charset {
 		public static DfaStateMachine<LetterId, char> StateMachine => @default.Value.stateMachine;
 		public static LalrTable Table => @default.Value.table;
 
+		public static string ResolveSymbol(SymbolId symbol) {
+			switch (symbol.ToInt32()) {
+			case SymbolId.Eof:
+				return "(EOF)";
+			case SymWhitespace:
+				return "(Whitespace)";
+			case SymCharset:
+				return "{Name}";
+			case SymRegexCharset:
+				return "[...]";
+			case SymUnion:
+				return "|";
+			case SymSubtract:
+				return "-";
+			case SymIntersect:
+				return "&";
+			case SymDifference:
+				return "^";
+			case SymNegate:
+				return "~";
+			case SymParensOpen:
+				return "(";
+			case SymParensClose:
+				return ")";
+			case SymExpression:
+				return "<Expression>";
+			case SymNegateExpression:
+				return "<NegateExpression>";
+			case SymValueExpression:
+				return "<ValueExpression>";
+			case SymUnionExpression:
+				return "<UnionExpression>";
+			case SymSubtractExpression:
+				return "<SubtractExpression>";
+			case SymIntersectExpression:
+				return "<IntersectExpression>";
+			case SymDifferenceExpression:
+				return "<DifferenceExpression>";
+			default:
+				return null;
+			}
+		}
+
 		private readonly DfaStateMachine<LetterId, char> stateMachine;
 		private readonly LalrTable table;
 
@@ -74,9 +85,9 @@ namespace Sirius.Parser.Grammars.Charset {
 			var provider = new UnicodeCharSetProvider();
 			var mapper = new UnicodeUtf16Mapper(false, false);
 			var rx = RegexLexer.CreateRx(mapper);
-			var rxWhitespace = new RxAccept<char>(rx.Visit(RegexVisitor<char>.Default, new SymbolId(RegexLexer.SymWhitespace)), SymWhitespace, 0);
-			var rxCharset = new RxAccept<char>(rx.Visit(RegexVisitor<char>.Default, new SymbolId(RegexLexer.SymCharset)), SymCharset, 0);
-			var rxRegexCharset = new RxAccept<char>(rx.Visit(RegexVisitor<char>.Default, new SymbolId(RegexLexer.SymRegexCharset)), SymRegexCharset, 0);
+			var rxWhitespace = new RxAccept<char>(RxOfSymbol<char>.Extract(rx, RegexLexer.SymWhitespace), SymWhitespace, 0);
+			var rxCharset = new RxAccept<char>(RxOfSymbol<char>.Extract(rx, RegexLexer.SymCharset), SymCharset, 0);
+			var rxRegexCharset = new RxAccept<char>(RxOfSymbol<char>.Extract(rx, RegexLexer.SymRegexCharset), SymRegexCharset, 0);
 			var rxUnion = new RxAccept<char>(RegexMatchSet.FromChars('|', '+').ToInvariant(mapper, provider, true), SymUnion, 0);
 			var rxSubtract = new RxAccept<char>(RegexMatchSet.FromChars('-').ToInvariant(mapper, provider, true), SymSubtract, 0);
 			var rxIntersect = new RxAccept<char>(RegexMatchSet.FromChars('&').ToInvariant(mapper, provider, true), SymIntersect, 0);

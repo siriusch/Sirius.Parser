@@ -1,18 +1,17 @@
 using System;
 
-namespace Sirius.Parser.Grammars.Charset {
-	public abstract class CharsetOperation<TChar>: CharsetNode<TChar>
-			where TChar: IComparable<TChar> {
-		protected CharsetOperation(CharsetNode<TChar> leftNode, CharsetNode<TChar> rightNode) {
+namespace Sirius.Parser.Charset {
+	public abstract class CharsetOperation: CharsetNode {
+		protected CharsetOperation(CharsetNode leftNode, CharsetNode rightNode) {
 			this.LeftNode = leftNode;
 			this.RightNode = rightNode;
 		}
 
-		public CharsetNode<TChar> LeftNode {
+		public CharsetNode LeftNode {
 			get;
 		}
 
-		public CharsetNode<TChar> RightNode {
+		public CharsetNode RightNode {
 			get;
 		}
 	}
