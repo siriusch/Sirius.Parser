@@ -24,7 +24,11 @@ namespace Sirius.Parser {
 				case AcceptAction _:
 					return true;
 				case ReduceSingleAction reduceAction:
-					DoReduce(ref simulatedState, reduceAction.ProductionRule, true);
+					foreach (var _ in reduceAction.ProductionRule.RuleSymbolIds) {
+						simulatedState = simulatedState.Parent;
+					}
+					var newState = ((GotoAction)this.table.Action[new StateKey<SymbolId>(simulatedState.State, reduceAction.ProductionRule.ProductionSymbolId)]).NewState;
+					simulatedState = new ParserState<TAstNode>(default(TAstNode), newState, simulatedState);
 					continue;
 				default:
 					return false;
@@ -36,32 +40,30 @@ namespace Sirius.Parser {
 
 		protected abstract TAstNode CreateTerminal(SymbolId symbolId, Capture<TInput> letters, TPosition offset);
 
-		protected abstract bool CheckAndPreprocessTerminal(ref SymbolId symbolId, Capture<TInput> letters, out TPosition position);
+		protected abstract bool CheckAndPreprocessTerminal(ref SymbolId symbolId, ref Capture<TInput> letters, out TPosition position);
 
-		private void DoReduce(ref ParserState<TAstNode> currentState, ProductionRule rule, bool simulate) {
+		private void DoReduce(ProductionRule rule) {
+			var currentState = this.context.currentState;
 			// Take all AST nodes required for reduction from stack
-			var node = default(TAstNode);
-			if (simulate) {
-				for (var i = rule.RuleSymbolIds.Count-1; i >= 0; i--) {
-					currentState = currentState.Parent;
-				}
-			} else {
-				var nodes = new TAstNode[rule.RuleSymbolIds.Count];
-				for (var i = nodes.Length-1; i >= 0; i--) {
-					nodes[i] = currentState.Node;
-					currentState = currentState.Parent;
-				}
-				node = CreateNonterminal(rule, nodes);
+			var nodes = new TAstNode[rule.RuleSymbolIds.Count];
+			for (var i = nodes.Length-1; i >= 0; i--) {
+				nodes[i] = currentState.Node;
+				currentState = currentState.Parent;
 			}
+			var node = CreateNonterminal(rule, nodes);
 			// Get the next transition key based on the item being reduced (should exist as goto in the table) and push onto the stack
 			var topState = currentState.State;
 			var newState = ((GotoAction)this.table.Action[new StateKey<SymbolId>(topState, rule.ProductionSymbolId)]).NewState;
 			// Transition to the top state
-			currentState = new ParserState<TAstNode>(node, newState, currentState);
+			this.context.currentState = new ParserState<TAstNode>(node, newState, currentState);
+		}
+
+		protected virtual void SyntaxError(IEnumerable<SymbolId> expectedSymbols, ref SymbolId tokenSymbolId, ref Capture<TInput> tokenValue, TPosition position) {
+			this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
 		}
 
 		public virtual void ProcessToken(SymbolId tokenSymbolId, Capture<TInput> tokenValue) {
-			if (CheckAndPreprocessTerminal(ref tokenSymbolId, tokenValue, out var position)) {
+			if (CheckAndPreprocessTerminal(ref tokenSymbolId, ref tokenValue, out var position)) {
 				var initialState = this.context.currentState;
 				for (;;) {
 					this.table.Action.TryGetValue(new StateKey<SymbolId>(this.context.currentState.State, tokenSymbolId), out var action);
@@ -71,7 +73,7 @@ namespace Sirius.Parser {
 						this.context.currentState = new ParserState<TAstNode>(CreateTerminal(tokenSymbolId, tokenValue, position), shiftAction.NewState, this.context.currentState);
 						return;
 					case ReduceSingleAction reduceAction:
-						DoReduce(ref this.context.currentState, reduceAction.ProductionRule, false);
+						DoReduce(reduceAction.ProductionRule);
 						// Keep reducing before moving to the next token
 						continue;
 					case AcceptAction _:
@@ -82,11 +84,11 @@ namespace Sirius.Parser {
 					}
 					this.context.currentState = initialState;
 					var expectedSymbols = this.table.Action.Where(p => p.Key.State == this.context.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(this.CanShift);
-					var retrySymbolId = this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
-					if (!retrySymbolId.HasValue || retrySymbolId == tokenSymbolId) {
+					var initialSymbolId = tokenSymbolId;
+					this.SyntaxError(expectedSymbols, ref tokenSymbolId, ref tokenValue, position);
+					if (initialSymbolId == tokenSymbolId) {
 						return;
 					}
-					tokenSymbolId = retrySymbolId.Value;
 				}
 			}
 		}

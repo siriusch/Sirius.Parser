@@ -7,15 +7,15 @@ namespace Sirius.Parser {
 	public class ParserContext<TAstNode, TInput, TPosition>: ParserContextBase<TAstNode, TInput, TPosition> {
 		private readonly Action<TAstNode> accept;
 		private readonly Func<SymbolId, string> resolveSymbol;
-		private readonly Func<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition, SymbolId?> syntaxError;
+		private readonly Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError;
 
 		public ParserContext(Action<TAstNode> accept): this(accept, null, null) { }
 
 		public ParserContext(Action<TAstNode> accept, Func<SymbolId, string> resolveSymbol): this(accept, null, resolveSymbol) { }
 
-		public ParserContext(Action<TAstNode> accept, Func<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition, SymbolId?> syntaxError): this(accept, syntaxError, null) { }
+		public ParserContext(Action<TAstNode> accept, Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError): this(accept, syntaxError, null) { }
 
-		private ParserContext(Action<TAstNode> accept, Func<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition, SymbolId?> syntaxError, Func<SymbolId, string> resolveSymbol) {
+		private ParserContext(Action<TAstNode> accept, Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError, Func<SymbolId, string> resolveSymbol) {
 			this.accept = accept;
 			this.syntaxError = syntaxError;
 			this.resolveSymbol = resolveSymbol;
@@ -29,8 +29,12 @@ namespace Sirius.Parser {
 			return this.resolveSymbol != null ? this.resolveSymbol(symbol) : base.ResolveSymbol(symbol);
 		}
 
-		protected internal override SymbolId? SyntaxError(IEnumerable<SymbolId> expectedSymbols, SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position) {
-			return this.syntaxError != null ? this.syntaxError(expectedSymbols, this.StateStack(), tokenSymbolId, tokenValue, position) : base.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+		protected internal override void SyntaxError(IEnumerable<SymbolId> expectedSymbols, SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position) {
+			if (this.syntaxError != null) {
+				this.syntaxError(expectedSymbols, this.StateStack(), tokenSymbolId, tokenValue, position);
+			} else {
+				base.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+			}
 		}
 	}
 }

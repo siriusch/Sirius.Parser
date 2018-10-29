@@ -20,7 +20,7 @@ namespace Sirius.Parser.Charset {
 
 		public CharsetParser(ParserContextBase<CharsetNode, char, long> context): base(CharsetGrammar.Table, context) { }
 
-		protected override bool CheckAndPreprocessTerminal(ref SymbolId symbolId, Capture<char> letters, out long position) {
+		protected override bool CheckAndPreprocessTerminal(ref SymbolId symbolId, ref Capture<char> letters, out long position) {
 			position = letters.Index;
 			return symbolId != CharsetGrammar.SymWhitespace;
 		}

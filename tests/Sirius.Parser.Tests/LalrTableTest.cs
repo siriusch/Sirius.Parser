@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 
+using AgileObjects.ReadableExpressions;
+
 using Sirius.Collections;
 using Sirius.Parser.Grammar;
 using Sirius.Parser.Lalr;
@@ -57,6 +59,10 @@ namespace Sirius.Parser {
 										tokenValue,
 										typeof(IEnumerable<char>))));
 			}
+
+			public Expression SyntaxError(Expression expectedSymbols, Expression tokenSymbolId, Expression tokenValue, Expression position) {
+				return null;
+			}
 		}
 
 		public class ExpressionParser: ParserBase<char, Token, long> {
@@ -66,7 +72,7 @@ namespace Sirius.Parser {
 				this.output = output;
 			}
 
-			protected override bool CheckAndPreprocessTerminal(ref SymbolId symbolId, Capture<char> letters, out long position) {
+			protected override bool CheckAndPreprocessTerminal(ref SymbolId symbolId, ref Capture<char> letters, out long position) {
 				position = letters.Index;
 				return symbolId != whitespace;
 			}
@@ -205,10 +211,8 @@ namespace Sirius.Parser {
 						}
 						.ComputeDfa(), LazyThreadSafetyMode.PublicationOnly);
 
-		private static readonly Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>> parserFunc = new Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>(() => {
-			var parserExpr = ParserEmitter.EmitParser(ExpressionLalrTable.Value, new ExpressionFragmentEmitter(), Resolve);
-			return parserExpr.Compile();
-		}, LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<Expression<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>> parserExpr = new Lazy<Expression<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>>(() => ParserEmitter.EmitParser(ExpressionLalrTable.Value, new ExpressionFragmentEmitter(), Resolve), LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>> parserFunc = new Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>(() => parserExpr.Value.Compile(), LazyThreadSafetyMode.PublicationOnly);
 
 		private readonly ITestOutputHelper output;
 
@@ -216,11 +220,19 @@ namespace Sirius.Parser {
 			this.output = output;
 		}
 
+		[Fact]
+		public void EmitExpression() {
+			this.output.WriteLine(parserExpr.Value.ToReadableString());
+			Assert.NotNull(parserFunc.Value); // force compilation
+			parserFunc.Value(new ParserContext<Token, char, long>(null), whitespace, default(Capture<char>)); // run some code
+		}
+
 		[Theory]
 		[InlineData("10", true)]
 		[InlineData("(10)", true)]
 		[InlineData("1 + 2 * 3 + 4", true)]
 		[InlineData("(1 + 2) * (3 + 4 * 1)", true)]
+		[InlineData("(1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1)", true)]
 		[InlineData("(1", false)]
 		[InlineData("(1+", false)]
 		[InlineData("(1 + 2) * (3 + 4", false)]
@@ -246,7 +258,6 @@ namespace Sirius.Parser {
 						Assert.False(success);
 						Assert.False(done);
 						done = true;
-						return null;
 					}));
 			var lexer = new Lexer<char>(ExpressionDfa.Value, parser.ProcessToken, whitespace);
 			lexer.Push(expression.Append(Utf16Chars.EOF).ToArray());
@@ -259,9 +270,10 @@ namespace Sirius.Parser {
 		[InlineData("(10)", true)]
 		[InlineData("1 + 2 * 3 + 4", true)]
 		[InlineData("(1 + 2) * (3 + 4 * 1)", true)]
-		//		[InlineData("(1", false)]
-		//		[InlineData("(1+", false)]
-		//		[InlineData("(1 + 2) * (3 + 4", false)]
+		[InlineData("(1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1) / (1 + 2) * (3 + 4 * 1)", true)]
+		[InlineData("(1", false)]
+		[InlineData("(1+", false)]
+		[InlineData("(1 + 2) * (3 + 4", false)]
 		public void ExpressionGrammarCompiled(string expression, bool success) {
 			var done = false;
 			var context = new ParserContext<Token, char, long>(
@@ -284,7 +296,6 @@ namespace Sirius.Parser {
 						Assert.False(success);
 						Assert.False(done);
 						done = true;
-						return null;
 					});
 			var lexer = new Lexer<char>(ExpressionDfa.Value, context.Bind(parserFunc.Value), whitespace);
 			lexer.Push(expression.Append(Utf16Chars.EOF).ToArray());
