@@ -40,34 +40,20 @@ namespace Sirius.Parser.Semantic.Json {
     ""Partner"": null
   }
 }]")]
-		[InlineData(@"{
-  ""Herausgeber"": ""Xema"",
-  ""Nummer"": ""1234-5678-9012-3456"",
-  ""Deckung"": 2e+6,
-  ""Waehrung"": ""EURO"",
-  ""Inhaber"":
-  {
-    ""Name"": ""Mustermann"",
-    ""Vorname"": ""Max"",
-    ""maennlich"": true,
-    ""Hobbys"": [""Reiten"", ""Golfen"", ""Lesen""],
-    ""Alter"": 42,
-    ""Kinder"": [],
-    ""Partner"": null
-  }
-}")]
 		public void ParseJson(string json) {
 			var done = false;
 			var sw = new Stopwatch();
-			var parser = new JsonParser<char>(grammar.Value, new ParserContext<JsonToken, char, long>(node => {
+			var parser = new JsonParser<char>(grammar.Value, new ParserContext<JsonValue, char, long>(node => {
 				sw.Stop();
 				done = true;
-				this.output.WriteLine($"Parse ticks: {sw.ElapsedTicks} ({sw.ElapsedMilliseconds}ms)");
 				this.output.WriteLine(node.ToString());
 			}));
 			sw.Start();
 			parser.Push(json);
+			Assert.False(done);
 			parser.Push(Utf16Chars.EOF);
+			Assert.True(done);
+			this.output.WriteLine($"Parse ticks: {sw.ElapsedTicks} ({sw.ElapsedMilliseconds}ms)");
 		}
 	}
 }
