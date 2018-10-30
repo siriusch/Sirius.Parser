@@ -32,11 +32,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Sirius.Common, Version=1.0.8.28277, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sirius.Common.1.0.8\lib\net461\Sirius.Common.dll</HintPath>
+    <Reference Include="Sirius.Common, Version=1.0.9.27022, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sirius.Common.1.0.9\lib\net461\Sirius.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Sirius.RegularExpressions, Version=1.0.7.783, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Sirius.RegularExpressions.1.0.7\lib\net461\Sirius.RegularExpressions.dll</HintPath>
+    <Reference Include="Sirius.RegularExpressions, Version=1.0.8.27881, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sirius.RegularExpressions.1.0.8\lib\net461\Sirius.RegularExpressions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,6 +53,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Sirius.Parser.Grammars.nuspec">
       <SubType>Designer</SubType>
