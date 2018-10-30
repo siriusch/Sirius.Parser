@@ -3,7 +3,7 @@ using System;
 using JetBrains.Annotations;
 
 namespace Sirius.Parser.Semantic {
-	[AttributeUsage(AttributeTargets.Assembly)]
+	[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 	public sealed class StartSymbolAttribute: GrammarAttribute {
 		public StartSymbolAttribute([NotNull] Type grammarKey,
 				[NotNull] [LocalizationRequired(false)]

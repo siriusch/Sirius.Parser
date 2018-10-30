@@ -102,6 +102,16 @@
     <Compile Include="GrmParserTest.cs" />
     <Compile Include="LalrTableTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Semantic\Json\JsonArray.cs" />
+    <Compile Include="Semantic\Json\JsonElement.cs" />
+    <Compile Include="Semantic\Json\JsonGrammar.cs" />
+    <Compile Include="Semantic\Json\JsonNull.cs" />
+    <Compile Include="Semantic\Json\JsonObject.cs" />
+    <Compile Include="Semantic\Json\JsonParser.cs" />
+    <Compile Include="Semantic\Json\JsonProperty.cs" />
+    <Compile Include="Semantic\Json\JsonTest.cs" />
+    <Compile Include="Semantic\Json\JsonToken.cs" />
+    <Compile Include="Semantic\Json\JsonValue.cs" />
     <Compile Include="Semantic\SemanticParserTest.cs" />
     <Compile Include="Semantic\Tokens\TestAdd.cs" />
     <Compile Include="Semantic\Tokens\TestConstant.cs" />

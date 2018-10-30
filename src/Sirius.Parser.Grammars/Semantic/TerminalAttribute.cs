@@ -10,7 +10,7 @@ namespace Sirius.Parser.Semantic {
 	public sealed class TerminalAttribute: GrammarSymbolAttribute {
 		public TerminalAttribute([NotNull]Type grammarKey,
 				[NotNull] [LocalizationRequired(false)]
-				string symbol): this(grammarKey, symbol, Regex.Escape(symbol).Replace("/", @"\/")) { }
+				string symbol): this(grammarKey, symbol, Regex.Escape(symbol).Replace("]", @"\]").Replace("}", @"\}").Replace("/", @"\/")) { }
 
 		public TerminalAttribute([NotNull]Type grammarKey,
 				[NotNull] [LocalizationRequired(false)]

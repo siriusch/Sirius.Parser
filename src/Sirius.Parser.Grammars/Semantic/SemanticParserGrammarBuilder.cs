@@ -227,7 +227,7 @@ namespace Sirius.Parser.Semantic {
 			// Generate parameter list
 			var parameters = methodBase.GetParameters();
 			var paramsCall = new Expression[parameters.Length];
-			if (parameters.Any(p => p.IsDefined(typeof(RuleSymbolAttribute)))) {
+			if (parameters.SelectMany(p => p.GetCustomAttributes<RuleSymbolAttribute>()).Any(a => Equals(a.RuleKey, info.Key.RuleKey))) {
 				for (var i = 0; i < paramsCall.Length; i++) {
 					var parameterMapping = parameters[i].GetCustomAttributes<RuleSymbolAttribute>().SingleOrDefault(a => Equals(a.RuleKey, info.Key.RuleKey));
 					if (parameterMapping != null) {
@@ -257,6 +257,9 @@ namespace Sirius.Parser.Semantic {
 
 		public Expression CreateTerminal(SymbolId symbolId, ParameterExpression varParser, ParameterExpression varTokenValue, ParameterExpression varPosition) {
 			var methodBase = this.terminals[symbolId];
+			if (methodBase == null) {
+				return Expression.Default(typeof(TAstNode));
+			}
 			var parameters = methodBase.GetParameters();
 			var paramsCall = new Expression[parameters.Length];
 			for (var i = 0; i < parameters.Length; i++) {
