@@ -54,6 +54,7 @@
     <Compile Include="Grammar\GrammarBuilder.cs" />
     <Compile Include="Grammar\IGrammarData.cs" />
     <Compile Include="Grammar\Production.cs" />
+    <Compile Include="Grammar\ProductionKey.cs" />
     <Compile Include="Grammar\SymbolKind.cs" />
     <Compile Include="Lalr\AcceptAction.cs" />
     <Compile Include="Lalr\ActionType.cs" />
@@ -65,7 +66,6 @@
     <Compile Include="Lalr\LrItem.cs" />
     <Compile Include="Lalr\LrItemSet.cs" />
     <Compile Include="Lalr\LrItemSetCollection.cs" />
-    <Compile Include="Lalr\ProductionKey.cs" />
     <Compile Include="Lalr\ProductionRule.cs" />
     <Compile Include="Lalr\ReduceAction.cs" />
     <Compile Include="Lalr\ReduceMultiAction.cs" />

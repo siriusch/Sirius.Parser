@@ -6,6 +6,6 @@ using Sirius.RegularExpressions.Automata;
 
 namespace Sirius.Parser.Charset {
 	public class CharsetLexer: Lexer<char, LetterId> {
-		public CharsetLexer(Action<SymbolId, Capture<char>> tokenAction): base(CharsetGrammar.StateMachine, default(Id<DfaState<LetterId>>), true, tokenAction) { }
+		public CharsetLexer(Action<SymbolId, Capture<char>> tokenAction): base(CharsetGrammar.LexerStateMachine, default(Id<DfaState<LetterId>>), true, tokenAction) { }
 	}
 }

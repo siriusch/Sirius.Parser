@@ -25,18 +25,18 @@ namespace Sirius.Parser.Grammar {
 			return this.Rules.GetEnumerator();
 		}
 
-		public SymbolIdSequence Add(IEnumerable<SymbolId> ruleSymbolIds) {
+		public ProductionKey Add(IEnumerable<SymbolId> ruleSymbolIds) {
 			var symbolIdSequence = new SymbolIdSequence(ruleSymbolIds);
 			this.Rules.Add(symbolIdSequence);
-			return symbolIdSequence;
+			return new ProductionKey(this.ProductionSymbolId, symbolIdSequence);
 		}
 
-		public SymbolIdSequence Add(params SymbolId[] ruleSymbolIds) {
-			return Add((IEnumerable<SymbolId>)ruleSymbolIds);
+		public ProductionKey Add(params SymbolId[] ruleSymbolIds) {
+			return this.Add((IEnumerable<SymbolId>)ruleSymbolIds);
 		}
 
 		public override string ToString() {
-			return ToString(id => id.ToString());
+			return this.ToString(id => id.ToString());
 		}
 
 		public string ToString(Func<SymbolId, string> resolver) {

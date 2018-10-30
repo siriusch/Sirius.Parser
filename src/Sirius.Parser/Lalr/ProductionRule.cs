@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Linq;
+
+using Sirius.Parser.Grammar;
 
 namespace Sirius.Parser.Lalr {
 	public sealed class ProductionRule: IEquatable<ProductionRule> {
@@ -8,6 +10,8 @@ namespace Sirius.Parser.Lalr {
 			this.ProductionSymbolId = productionSymbolId;
 			this.RuleSymbolIds = ruleSymbolIds;
 		}
+
+		public ProductionKey Key => new ProductionKey(ProductionSymbolId, RuleSymbolIds);
 
 		public SymbolId ProductionSymbolId {
 			get;
@@ -36,7 +40,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public override int GetHashCode() {
-			return unchecked(this.ProductionSymbolId.GetHashCode()^(this.Index * 397));
+			return this.Index;
 		}
 
 		public override string ToString() {

@@ -58,8 +58,8 @@ namespace Sirius.Parser {
 			this.context.currentState = new ParserState<TAstNode>(node, newState, currentState);
 		}
 
-		protected virtual void SyntaxError(IEnumerable<SymbolId> expectedSymbols, ref SymbolId tokenSymbolId, ref Capture<TInput> tokenValue, TPosition position) {
-			this.context.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+		protected virtual void SyntaxError(ref SymbolId tokenSymbolId, ref Capture<TInput> tokenValue, TPosition position, IEnumerable<SymbolId> expectedSymbols) {
+			this.context.SyntaxError(tokenSymbolId, tokenValue, position, expectedSymbols);
 		}
 
 		public virtual void ProcessToken(SymbolId tokenSymbolId, Capture<TInput> tokenValue) {
@@ -85,7 +85,7 @@ namespace Sirius.Parser {
 					this.context.currentState = initialState;
 					var expectedSymbols = this.table.Action.Where(p => p.Key.State == this.context.currentState.State && p.Value.Type != ActionType.Goto).Select(p => p.Key.Value).Where(this.CanShift);
 					var initialSymbolId = tokenSymbolId;
-					this.SyntaxError(expectedSymbols, ref tokenSymbolId, ref tokenValue, position);
+					this.SyntaxError(ref tokenSymbolId, ref tokenValue, position, expectedSymbols);
 					if (initialSymbolId == tokenSymbolId) {
 						return;
 					}

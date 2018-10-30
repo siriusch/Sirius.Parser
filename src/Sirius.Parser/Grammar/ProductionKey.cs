@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 
-using Sirius.Parser.Grammar;
-
-namespace Sirius.Parser.Lalr {
-	internal struct ProductionKey: IEquatable<ProductionKey> {
+namespace Sirius.Parser.Grammar {
+	public struct ProductionKey: IEquatable<ProductionKey> {
 		public ProductionKey(SymbolId productionSymbolId, SymbolIdSequence ruleSymbolIds) {
 			this.ProductionSymbolId = productionSymbolId;
 			this.RuleSymbolIds = ruleSymbolIds;
@@ -25,7 +23,7 @@ namespace Sirius.Parser.Lalr {
 			if (ReferenceEquals(null, obj)) {
 				return false;
 			}
-			return obj is ProductionKey && Equals((ProductionKey)obj);
+			return obj is ProductionKey && this.Equals((ProductionKey)obj);
 		}
 
 		public override int GetHashCode() {

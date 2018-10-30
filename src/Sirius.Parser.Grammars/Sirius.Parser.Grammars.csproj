@@ -35,8 +35,8 @@
     <Reference Include="Sirius.Common, Version=1.0.8.28277, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
       <HintPath>..\packages\Sirius.Common.1.0.8\lib\net461\Sirius.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Sirius.RegularExpressions, Version=1.0.5.3540, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sirius.RegularExpressions.1.0.5\lib\net461\Sirius.RegularExpressions.dll</HintPath>
+    <Reference Include="Sirius.RegularExpressions, Version=1.0.7.783, Culture=neutral, PublicKeyToken=3d58c5c8efc41aa9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Sirius.RegularExpressions.1.0.7\lib\net461\Sirius.RegularExpressions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,6 +79,18 @@
     <Compile Include="Charset\ICharsetVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RxOfSymbol.cs" />
+    <Compile Include="Semantic\CharsetAttribute.cs" />
+    <Compile Include="Semantic\GrammarAttribute.cs" />
+    <Compile Include="Semantic\GrammarSymbolAttribute.cs" />
+    <Compile Include="Semantic\RuleAttribute.cs" />
+    <Compile Include="Semantic\RuleSymbolAttribute.cs" />
+    <Compile Include="Semantic\SemanticParser.cs" />
+    <Compile Include="Semantic\SemanticParserGrammar.cs" />
+    <Compile Include="Semantic\SemanticParserGrammarBuilder.cs" />
+    <Compile Include="Semantic\StartSymbolAttribute.cs" />
+    <Compile Include="Semantic\TerminalAttribute.cs" />
+    <Compile Include="Semantic\TerminalFlags.cs" />
+    <Compile Include="Semantic\VirtualSymbolAttribute.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild" Condition="'$(build_number)' != ''">

@@ -7,15 +7,15 @@ namespace Sirius.Parser {
 	public class ParserContext<TAstNode, TInput, TPosition>: ParserContextBase<TAstNode, TInput, TPosition> {
 		private readonly Action<TAstNode> accept;
 		private readonly Func<SymbolId, string> resolveSymbol;
-		private readonly Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError;
+		private readonly Action<SymbolId, Capture<TInput>, TPosition, IEnumerable<SymbolId>, IEnumerable<TAstNode>> syntaxError;
 
 		public ParserContext(Action<TAstNode> accept): this(accept, null, null) { }
 
 		public ParserContext(Action<TAstNode> accept, Func<SymbolId, string> resolveSymbol): this(accept, null, resolveSymbol) { }
 
-		public ParserContext(Action<TAstNode> accept, Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError): this(accept, syntaxError, null) { }
+		public ParserContext(Action<TAstNode> accept, Action<SymbolId, Capture<TInput>, TPosition, IEnumerable<SymbolId>, IEnumerable<TAstNode>> syntaxError): this(accept, syntaxError, null) { }
 
-		private ParserContext(Action<TAstNode> accept, Action<IEnumerable<SymbolId>, IEnumerable<TAstNode>, SymbolId, Capture<TInput>, TPosition> syntaxError, Func<SymbolId, string> resolveSymbol) {
+		private ParserContext(Action<TAstNode> accept, Action<SymbolId, Capture<TInput>, TPosition, IEnumerable<SymbolId>, IEnumerable<TAstNode>> syntaxError, Func<SymbolId, string> resolveSymbol) {
 			this.accept = accept;
 			this.syntaxError = syntaxError;
 			this.resolveSymbol = resolveSymbol;
@@ -29,11 +29,11 @@ namespace Sirius.Parser {
 			return this.resolveSymbol != null ? this.resolveSymbol(symbol) : base.ResolveSymbol(symbol);
 		}
 
-		protected internal override void SyntaxError(IEnumerable<SymbolId> expectedSymbols, SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position) {
+		protected internal override void SyntaxError(SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position, IEnumerable<SymbolId> expectedSymbols) {
 			if (this.syntaxError != null) {
-				this.syntaxError(expectedSymbols, this.StateStack(), tokenSymbolId, tokenValue, position);
+				this.syntaxError(tokenSymbolId, tokenValue, position, expectedSymbols, this.StateStack());
 			} else {
-				base.SyntaxError(expectedSymbols, tokenSymbolId, tokenValue, position);
+				base.SyntaxError(tokenSymbolId, tokenValue, position, expectedSymbols);
 			}
 		}
 	}

@@ -28,7 +28,7 @@ namespace Sirius.Parser {
 
 		[Fact]
 		public void TableTest() {
-			Assert.NotNull(CharsetGrammar.StateMachine);
+			Assert.NotNull(CharsetGrammar.LexerStateMachine);
 			Assert.NotNull(CharsetGrammar.Table);
 		}
 	}

@@ -13,6 +13,7 @@
     <tags>Sirius Parser</tags>
     <dependencies>
       <dependency id="Sirius.Common" version="1.0.8" />
+      <dependency id="Sirius.RegularExpressions" version="1.0.7" />
       <dependency id="Sirius.Parser" version="0.0.0" />
     </dependencies>
   </metadata>

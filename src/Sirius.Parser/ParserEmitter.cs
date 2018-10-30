@@ -8,60 +8,55 @@ using Sirius.Collections;
 using Sirius.Parser.Lalr;
 
 namespace Sirius.Parser {
-	public interface IParserFragmentEmitter<TAstNode, TInput, TPosition> {
-		/// <summary>
-		///     Create an expression to preprocess the token.
-		/// </summary>
-		/// <remarks>This is executed for every data supplied by the tokenizer, use it to compute the position based on input.</remarks>
-		/// <param name="tokenSymbolId"><see cref="SymbolId" />: Read/Write</param>
-		/// <param name="tokenValue"><see cref="Capture{T}" /> (T = TInput): Read/Write</param>
-		/// <param name="position">TPosition: Write</param>
-		/// <returns>Expression returning a <see cref="Boolean" />: <c>true</c> to process the token, <c>false</c> to skip it</returns>
-		Expression CheckAndPreprocessTerminal(ParameterExpression tokenSymbolId, ParameterExpression tokenValue, ParameterExpression position);
-
+	public interface IParserFragmentEmitter<TParser, TAstNode, TInput, TPosition> {
 		/// <summary>
 		///     Create a TAstNode descendant for a nonterminal rule.
 		/// </summary>
 		/// <param name="rule">Production rule</param>
-		/// <param name="productionNodes">Variables containing the TAstNodes for the rule production</param>
+		/// <param name="varParser">TParser: Read</param>
+		/// <param name="varsProductionNodes">Variables containing the TAstNodes for the rule production</param>
 		/// <returns>Expression returning a TAstNode descendant (may also be <c>null</c>)</returns>
-		Expression CreateNonterminal(ProductionRule rule, ParameterExpression[] productionNodes);
+		Expression CreateNonterminal(ProductionRule rule, ParameterExpression varParser, ParameterExpression[] varsProductionNodes);
 
 		/// <summary>
 		///     Create a TAstNode descendant for a terminal symbol.
 		/// </summary>
 		/// <param name="symbolId">Symbol of the terminal to create</param>
-		/// <param name="tokenValue"><see cref="Capture{T}" /> (T = TInput): Read</param>
-		/// <param name="position">TPosition: Read</param>
+		/// <param name="varParser">TParser: Read</param>
+		/// <param name="varTokenValue"><see cref="Capture{T}" /> (T = TInput): Read</param>
+		/// <param name="varPosition">TPosition: Read</param>
 		/// <returns>Expression returning a TAstNode descendant (may also be <c>null</c>)</returns>
-		Expression CreateTerminal(SymbolId symbolId, ParameterExpression tokenValue, ParameterExpression position);
+		Expression CreateTerminal(SymbolId symbolId, ParameterExpression varParser, ParameterExpression varTokenValue, ParameterExpression varPosition);
 
 		/// <summary>
 		///     Extension point to implement syntax error retry handling (with a different symbol).
 		/// </summary>
-		/// <param name="expectedSymbols"><see cref="IEnumerable{T}" /> (T = <see cref="SymbolId" />): Read</param>
-		/// <param name="tokenSymbolId"><see cref="SymbolId" />: Read/Write</param>
-		/// <param name="tokenValue"><see cref="Capture{T}" /> (T = TInput): Read/Write</param>
-		/// <param name="position">TPosition: Read</param>
+		/// <param name="varParser">TParser: Read</param>
+		/// <param name="varTokenSymbolId"><see cref="SymbolId" />: Read/Write</param>
+		/// <param name="varTokenValue"><see cref="Capture{T}" /> (T = TInput): Read/Write</param>
+		/// <param name="varPosition">TPosition: Read</param>
+		/// <param name="exprExpectedSymbols"><see cref="IEnumerable{T}" /> (T = <see cref="SymbolId" />): Read</param>
 		/// <returns>
 		///     An expression with a boolean return type (<c>true</c> retries the parsing), or <c>null</c> to invoke
 		///     <c>context.SyntaxError</c> and break.
 		/// </returns>
-		Expression SyntaxError(Expression expectedSymbols, Expression tokenSymbolId, Expression tokenValue, Expression position);
+		/// <remarks>The <see cref="exprExpectedSymbols"/> expression is a complex expression which should be used at most once. Consider caching the result in a variable if you need the information multiple times. Not using it will significantly reduce the amount of emitted code.</remarks>
+		Expression SyntaxError(ParameterExpression varParser, ParameterExpression varTokenSymbolId, ParameterExpression varTokenValue, ParameterExpression varPosition, Expression exprExpectedSymbols);
 	}
 
 	public static class ParserEmitter {
-		private static readonly MethodInfo meth_SymbolId_ToInt32 = Reflect<SymbolId>.GetMethod(id => id.ToInt32());
+		internal static readonly MethodInfo meth_SymbolId_ToInt32 = Reflect<SymbolId>.GetMethod(id => id.ToInt32());
 		private static readonly ConstructorInfo ctor_InvalidOperationException = Reflect.GetConstructor(() => new InvalidOperationException());
 		private static readonly ConstructorInfo ctor_ListOfSymbolId = Reflect.GetConstructor(() => new List<SymbolId>(default(int)));
-		private static readonly ConstructorInfo ctor_SymbolId = Reflect.GetConstructor(() => new SymbolId(default(int)));
+		internal static readonly ConstructorInfo ctor_SymbolId_Int32 = Reflect.GetConstructor(() => new SymbolId(default(int)));
 		private static readonly MethodInfo meth_ListOfSymbolId_Add = Reflect<List<SymbolId>>.GetMethod(l => l.Add(default(SymbolId)));
 
-		public static Expression<Action<ParserContextBase<TAstNode, TInput, TPosition>, SymbolId, Capture<TInput>>> EmitParser<TAstNode, TInput, TPosition>(LalrTable table, IParserFragmentEmitter<TAstNode, TInput, TPosition> fragmentEmitter, Func<SymbolId, string> resolver = null) {
+		public static Expression<Action<TParser, ParserContextBase<TAstNode, TInput, TPosition>, SymbolId, Capture<TInput>, TPosition>> CreateExpression<TParser, TAstNode, TInput, TPosition>(LalrTable table, IParserFragmentEmitter<TParser, TAstNode, TInput, TPosition> fragmentEmitter, Func<SymbolId, string> resolver = null) {
+			var paramParser = Expression.Parameter(typeof(TParser), "parser");
 			var paramContext = Expression.Parameter(typeof(ParserContextBase<TAstNode, TInput, TPosition>), "context");
 			var paramTokenSymbolId = Expression.Parameter(typeof(SymbolId), "tokenSymbolId");
 			var paramTokenValue = Expression.Parameter(typeof(Capture<TInput>), "tokenValue");
-			var varPosition = Expression.Variable(typeof(TPosition), "position");
+			var paramPosition = Expression.Parameter(typeof(TPosition), "position");
 			var varInitialState = Expression.Variable(typeof(ParserState<TAstNode>), "initialState");
 			var exprCurrentState = Expression.Field(paramContext, Reflect<ParserContext<TAstNode, TInput, TPosition>>.GetField(c => c.currentState));
 			var lblBreak = Expression.Label("Break");
@@ -71,7 +66,7 @@ namespace Sirius.Parser {
 			var prop_ParserState_Node = Reflect<ParserState<TAstNode>>.GetProperty(s => s.Node);
 			var prop_ParserState_Parent = Reflect<ParserState<TAstNode>>.GetProperty(s => s.Parent);
 			var meth_Accept = Reflect<ParserContext<TAstNode, TInput, TPosition>>.GetMethod(c => c.Accept(default(TAstNode)));
-			var meth_SyntaxError = Reflect<ParserContext<TAstNode, TInput, TPosition>>.GetMethod(c => c.SyntaxError(default(IEnumerable<SymbolId>), default(SymbolId), default(Capture<TInput>), default(TPosition)));
+			var meth_SyntaxError = Reflect<ParserContext<TAstNode, TInput, TPosition>>.GetMethod(c => c.SyntaxError(default(SymbolId), default(Capture<TInput>), default(TPosition), default(IEnumerable<SymbolId>)));
 
 			Expression DoShift(SymbolId symbolId, ShiftAction action) {
 				return Expression.Block(typeof(void),
@@ -79,7 +74,7 @@ namespace Sirius.Parser {
 								exprCurrentState,
 								Expression.New(
 										ctor_ParserState,
-										fragmentEmitter.CreateTerminal(symbolId, paramTokenValue, varPosition),
+										fragmentEmitter.CreateTerminal(symbolId, paramParser, paramTokenValue, paramPosition),
 										Expression.Constant(action.NewState),
 										exprCurrentState)),
 						Expression.Break(lblBreak));
@@ -108,7 +103,7 @@ namespace Sirius.Parser {
 						exprCurrentState,
 						Expression.New(
 								ctor_ParserState,
-								fragmentEmitter.CreateNonterminal(action.ProductionRule, varsNodes),
+								fragmentEmitter.CreateNonterminal(action.ProductionRule, paramParser, varsNodes),
 								Expression.Switch(
 										Expression.Property(
 												varCurrentState,
@@ -190,49 +185,49 @@ namespace Sirius.Parser {
 						.ToArray();
 				var body = new List<Expression>(terminalSymbolIds.Length + 2);
 				body.Add(Expression.Assign(
-								varExpectedTokens,
-								Expression.New(
-										ctor_ListOfSymbolId,
-										Expression.Constant(terminalSymbolIds.Length))));
+						varExpectedTokens,
+						Expression.New(
+								ctor_ListOfSymbolId,
+								Expression.Constant(terminalSymbolIds.Length))));
 				foreach (var symbolId in terminalSymbolIds) {
 					body.Add(Expression.IfThen(
-									Expression.Block(typeof(bool), new[] {varSimulatedState},
-											Expression.Assign(
-													varSimulatedState,
-													exprCurrentState),
-											Expression.Loop(
-													Expression.Switch(typeof(void),
-															Expression.Property(
-																	varSimulatedState,
-																	prop_ParserState_State),
-															Expression.Break(lblSimulationBreak,
-																	Expression.Constant(false)),
-															null,
-															table.Action
-																	.Where(a => (a.Key.Value == symbolId) && (a.Value.Type == ActionType.Reduce))
-																	.GroupBy(a => ((ReduceSingleAction)a.Value).ProductionRule)
-																	.Select(g => Expression.SwitchCase(
-																			DoSimulateReduce(g.Key),
-																			g.Select(a => Expression.Constant(a.Key.State))))
-																	.Append(Expression.SwitchCase(
-																			Expression.Break(lblSimulationBreak,
-																					Expression.Constant(true)),
-																			table.Action
-																					.Where(a => (a.Key.Value == symbolId) && ((a.Value.Type == ActionType.Accept) || (a.Value.Type == ActionType.Shift)))
-																					.Select(a => Expression.Constant(a.Key.State))
-																	)).ToArray()), lblSimulationBreak)),
-									Expression.Call(
-											varExpectedTokens,
-											meth_ListOfSymbolId_Add,
-											Expression.New(
-													ctor_SymbolId,
-													Expression.Constant(symbolId.ToInt32())))));
+							Expression.Block(typeof(bool), new[] {varSimulatedState},
+									Expression.Assign(
+											varSimulatedState,
+											exprCurrentState),
+									Expression.Loop(
+											Expression.Switch(typeof(void),
+													Expression.Property(
+															varSimulatedState,
+															prop_ParserState_State),
+													Expression.Break(lblSimulationBreak,
+															Expression.Constant(false)),
+													null,
+													table.Action
+															.Where(a => (a.Key.Value == symbolId) && (a.Value.Type == ActionType.Reduce))
+															.GroupBy(a => ((ReduceSingleAction)a.Value).ProductionRule)
+															.Select(g => Expression.SwitchCase(
+																	DoSimulateReduce(g.Key),
+																	g.Select(a => Expression.Constant(a.Key.State))))
+															.Append(Expression.SwitchCase(
+																	Expression.Break(lblSimulationBreak,
+																			Expression.Constant(true)),
+																	table.Action
+																			.Where(a => (a.Key.Value == symbolId) && ((a.Value.Type == ActionType.Accept) || (a.Value.Type == ActionType.Shift)))
+																			.Select(a => Expression.Constant(a.Key.State))
+															)).ToArray()), lblSimulationBreak)),
+							Expression.Call(
+									varExpectedTokens,
+									meth_ListOfSymbolId_Add,
+									Expression.New(
+											ctor_SymbolId_Int32,
+											Expression.Constant(symbolId.ToInt32())))));
 				}
 				body.Add(Expression.Convert(
-								varExpectedTokens,
-								typeof(IEnumerable<SymbolId>)));
+						varExpectedTokens,
+						typeof(IEnumerable<SymbolId>)));
 				var exprExpectedSymbolIds = Expression.Block(typeof(IEnumerable<SymbolId>), new[] {varExpectedTokens}, body);
-				var exprCustomSyntaxError = fragmentEmitter.SyntaxError(exprExpectedSymbolIds, paramTokenSymbolId, paramTokenValue, varPosition);
+				var exprCustomSyntaxError = fragmentEmitter.SyntaxError(paramParser, paramTokenSymbolId, paramTokenValue, paramPosition, exprExpectedSymbolIds);
 				if (exprCustomSyntaxError?.Type == typeof(bool)) {
 					exprCustomSyntaxError = Expression.IfThen(
 							exprCustomSyntaxError,
@@ -245,50 +240,49 @@ namespace Sirius.Parser {
 						exprCustomSyntaxError ?? Expression.Call(
 								paramContext,
 								meth_SyntaxError,
-								exprExpectedSymbolIds,
 								paramTokenSymbolId,
 								paramTokenValue,
-								varPosition),
+								paramPosition,
+								exprExpectedSymbolIds),
 						Expression.Break(lblBreak));
 			}
 
-			return Expression.Lambda<Action<ParserContextBase<TAstNode, TInput, TPosition>, SymbolId, Capture<TInput>>>(
-					Expression.Block(new[] {varPosition},
-							Expression.IfThen(
-									fragmentEmitter.CheckAndPreprocessTerminal(paramTokenSymbolId, paramTokenValue, varPosition),
-									Expression.Block(typeof(void), new[] {varInitialState},
-											Expression.Assign(
-													varInitialState,
-													exprCurrentState),
-											Expression.Loop(
-													Expression.Block(typeof(void),
-															Expression.Switch(
-																	Expression.Property(
-																			exprCurrentState,
-																			prop_ParserState_State),
-																	table.Action
-																			.Where(a => (a.Value.Type == ActionType.Shift) || (a.Value.Type == ActionType.Reduce) || (a.Value.Type == ActionType.Accept))
-																			.GroupBy(a => a.Key.State)
-																			.Select(g => Expression.SwitchCase(
-																					Expression.Switch(
-																							Expression.Call(
-																									paramTokenSymbolId,
-																									meth_SymbolId_ToInt32),
-																							g.Select(a => Expression.SwitchCase(
-																									a.Value.Type == ActionType.Shift
-																											? DoShift(a.Key.Value, (ShiftAction)a.Value)
-																											: a.Value.Type == ActionType.Reduce
-																													? DoReduce((ReduceSingleAction)a.Value)
-																													: a.Value.Type == ActionType.Accept
-																															? DoAccept()
-																															: DoThrow(),
-																									Expression.Constant(a.Key.Value.ToInt32()))).ToArray()),
-																					Expression.Constant(g.Key))).ToArray()),
-															DoSyntaxError()
-													), lblBreak, lblContinue)))),
+			return Expression.Lambda<Action<TParser, ParserContextBase<TAstNode, TInput, TPosition>, SymbolId, Capture<TInput>, TPosition>>(
+					Expression.Block(typeof(void), new[] {varInitialState},
+							Expression.Assign(
+									varInitialState,
+									exprCurrentState),
+							Expression.Loop(
+									Expression.Block(typeof(void),
+											Expression.Switch(
+													Expression.Property(
+															exprCurrentState,
+															prop_ParserState_State),
+													table.Action
+															.Where(a => (a.Value.Type == ActionType.Shift) || (a.Value.Type == ActionType.Reduce) || (a.Value.Type == ActionType.Accept))
+															.GroupBy(a => a.Key.State)
+															.Select(g => Expression.SwitchCase(
+																	Expression.Switch(
+																			Expression.Call(
+																					paramTokenSymbolId,
+																					meth_SymbolId_ToInt32),
+																			g.Select(a => Expression.SwitchCase(
+																					a.Value.Type == ActionType.Shift
+																							? DoShift(a.Key.Value, (ShiftAction)a.Value)
+																							: a.Value.Type == ActionType.Reduce
+																									? DoReduce((ReduceSingleAction)a.Value)
+																									: a.Value.Type == ActionType.Accept
+																											? DoAccept()
+																											: DoThrow(),
+																					Expression.Constant(a.Key.Value.ToInt32()))).ToArray()),
+																	Expression.Constant(g.Key))).ToArray()),
+											DoSyntaxError()
+									), lblBreak, lblContinue)),
+					paramParser,
 					paramContext,
 					paramTokenSymbolId,
-					paramTokenValue);
+					paramTokenValue,
+					paramPosition);
 		}
 	}
 }

@@ -22,12 +22,8 @@ namespace Sirius.Parser {
 			}
 		}
 
-		protected internal virtual void SyntaxError(IEnumerable<SymbolId> expectedSymbols, SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position) {
+		protected internal virtual void SyntaxError(SymbolId tokenSymbolId, Capture<TInput> tokenValue, TPosition position, IEnumerable<SymbolId> expectedSymbols) {
 			throw new InvalidOperationException($"Syntax error at position {position}: found {tokenSymbolId.ToString(this.ResolveSymbol)} but expected one of {string.Join(", ", expectedSymbols.Select(t => t.ToString(this.ResolveSymbol)))}");
-		}
-
-		public Action<SymbolId, Capture<TInput>> Bind(Action<ParserContextBase<TAstNode, TInput, TPosition>, SymbolId, Capture<TInput>> parser) {
-			return (symbolId, capture) => parser(this, symbolId, capture);
 		}
 	}
 }

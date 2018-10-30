@@ -20,34 +20,20 @@ using Xunit.Abstractions;
 
 namespace Sirius.Parser {
 	public class LalrTableTest {
-		public class ExpressionFragmentEmitter: IParserFragmentEmitter<Token, char, long> {
-			Expression IParserFragmentEmitter<Token, char, long>.CheckAndPreprocessTerminal(ParameterExpression tokenSymbolId, ParameterExpression tokenValue, ParameterExpression position) {
-				return Expression.Block(
-						Expression.Assign(
-								position,
-								Expression.Property(
-										tokenValue,
-										Reflect<Capture<char>>.GetProperty(c => c.Index))),
-						Expression.NotEqual(
-								Expression.Call(
-										tokenSymbolId,
-										Reflect<SymbolId>.GetMethod(id => id.ToInt32())),
-								Expression.Constant(whitespace)));
-			}
-
-			Expression IParserFragmentEmitter<Token, char, long>.CreateNonterminal(ProductionRule rule, ParameterExpression[] productionNodes) {
-				if (productionNodes.Length == 1) {
-					return productionNodes[0];
+		public class ExpressionFragmentEmitter: IParserFragmentEmitter<object, Token, char, long> {
+			Expression IParserFragmentEmitter<object, Token, char, long>.CreateNonterminal(ProductionRule rule, ParameterExpression varParser, ParameterExpression[] varsProductionNodes) {
+				if (varsProductionNodes.Length == 1) {
+					return varsProductionNodes[0];
 				}
 				return Expression.New(
 						Reflect.GetConstructor(() => new Token(default(SymbolId), default(IEnumerable<Token>))),
 						Expression.New(
 								Reflect.GetConstructor(() => new SymbolId(default(int))),
 								Expression.Constant(rule.ProductionSymbolId.ToInt32())),
-						Expression.NewArrayInit(typeof(Token), productionNodes));
+						Expression.NewArrayInit(typeof(Token), varsProductionNodes));
 			}
 
-			Expression IParserFragmentEmitter<Token, char, long>.CreateTerminal(SymbolId symbolId, ParameterExpression tokenValue, ParameterExpression position) {
+			Expression IParserFragmentEmitter<object, Token, char, long>.CreateTerminal(SymbolId symbolId, ParameterExpression varParser, ParameterExpression varTokenValue, ParameterExpression varPosition) {
 				return Expression.New(
 						Reflect.GetConstructor(() => new Token(default(SymbolId), default(string))),
 						Expression.New(
@@ -56,11 +42,11 @@ namespace Sirius.Parser {
 						Expression.Call(
 								Reflect.GetStaticMethod(() => default(IEnumerable<char>).AsString()),
 								Expression.Convert(
-										tokenValue,
+										varTokenValue,
 										typeof(IEnumerable<char>))));
 			}
 
-			public Expression SyntaxError(Expression expectedSymbols, Expression tokenSymbolId, Expression tokenValue, Expression position) {
+			Expression IParserFragmentEmitter<object, Token, char, long>.SyntaxError(ParameterExpression varParser, ParameterExpression varTokenSymbolId, ParameterExpression varTokenValue, ParameterExpression varPosition, Expression exprExpectedSymbols) {
 				return null;
 			}
 		}
@@ -211,8 +197,8 @@ namespace Sirius.Parser {
 						}
 						.ComputeDfa(), LazyThreadSafetyMode.PublicationOnly);
 
-		private static readonly Lazy<Expression<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>> parserExpr = new Lazy<Expression<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>>(() => ParserEmitter.EmitParser(ExpressionLalrTable.Value, new ExpressionFragmentEmitter(), Resolve), LazyThreadSafetyMode.PublicationOnly);
-		private static readonly Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>> parserFunc = new Lazy<Action<ParserContextBase<Token, char, long>, SymbolId, Capture<char>>>(() => parserExpr.Value.Compile(), LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<Expression<Action<object, ParserContextBase<Token, char, long>, SymbolId, Capture<char>, long>>> parserExpr = new Lazy<Expression<Action<object, ParserContextBase<Token, char, long>, SymbolId, Capture<char>, long>>>(() => ParserEmitter.CreateExpression(ExpressionLalrTable.Value, new ExpressionFragmentEmitter(), Resolve), LazyThreadSafetyMode.PublicationOnly);
+		private static readonly Lazy<Action<object, ParserContextBase<Token, char, long>, SymbolId, Capture<char>, long>> parserFunc = new Lazy<Action<object, ParserContextBase<Token, char, long>, SymbolId, Capture<char>, long>>(() => parserExpr.Value.Compile(), LazyThreadSafetyMode.PublicationOnly);
 
 		private readonly ITestOutputHelper output;
 
@@ -224,10 +210,11 @@ namespace Sirius.Parser {
 		public void EmitExpression() {
 			this.output.WriteLine(parserExpr.Value.ToReadableString());
 			Assert.NotNull(parserFunc.Value); // force compilation
-			parserFunc.Value(new ParserContext<Token, char, long>(null), whitespace, default(Capture<char>)); // run some code
+			Assert.ThrowsAny<Exception>(() => parserFunc.Value(null, new ParserContext<Token, char, long>(null), whitespace, default(Capture<char>), 0)); // run some code
 		}
 
 		[Theory]
+		[InlineData("", false)]
 		[InlineData("10", true)]
 		[InlineData("(10)", true)]
 		[InlineData("1 + 2 * 3 + 4", true)]
@@ -247,9 +234,9 @@ namespace Sirius.Parser {
 						Assert.False(done);
 						done = true;
 					},
-					(symbols, stack, symbol, value, position) => {
+					(symbol, value, position, symbols, stack) => {
 						this.output.WriteLine("");
-						this.output.WriteLine("Syntax error, expected tokens:");
+						this.output.WriteLine($"Syntax error, got {symbol.ToString(Resolve)} but expected tokens:");
 						this.output.WriteLine(string.Join(", ", symbols.Select(Resolve)));
 						this.output.WriteLine("Current stack:");
 						foreach (var token in stack) {
@@ -259,13 +246,14 @@ namespace Sirius.Parser {
 						Assert.False(done);
 						done = true;
 					}));
-			var lexer = new Lexer<char>(ExpressionDfa.Value, parser.ProcessToken, whitespace);
+			var lexer = new Lexer<char>(ExpressionDfa.Value, parser.ProcessToken);
 			lexer.Push(expression.Append(Utf16Chars.EOF).ToArray());
 			lexer.Terminate();
 			Assert.True(done);
 		}
 
 		[Theory]
+		[InlineData("", false)]
 		[InlineData("10", true)]
 		[InlineData("(10)", true)]
 		[InlineData("1 + 2 * 3 + 4", true)]
@@ -285,9 +273,9 @@ namespace Sirius.Parser {
 						Assert.False(done);
 						done = true;
 					},
-					(symbols, stack, symbol, value, position) => {
+					(symbol, value, position, symbols, stack) => {
 						this.output.WriteLine("");
-						this.output.WriteLine("Syntax error, expected tokens:");
+						this.output.WriteLine($"Syntax error, got {symbol.ToString(Resolve)} but expected tokens:");
 						this.output.WriteLine(string.Join(", ", symbols.Select(Resolve)));
 						this.output.WriteLine("Current stack:");
 						foreach (var token in stack) {
@@ -297,7 +285,11 @@ namespace Sirius.Parser {
 						Assert.False(done);
 						done = true;
 					});
-			var lexer = new Lexer<char>(ExpressionDfa.Value, context.Bind(parserFunc.Value), whitespace);
+			var lexer = new Lexer<char>(ExpressionDfa.Value, (symbolId, capture) => {
+				if (symbolId != whitespace) {
+					parserFunc.Value(null, context, symbolId, capture, capture.Index);
+				}
+			});
 			lexer.Push(expression.Append(Utf16Chars.EOF).ToArray());
 			lexer.Terminate();
 			Assert.True(done);

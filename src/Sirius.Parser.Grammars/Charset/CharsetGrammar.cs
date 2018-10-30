@@ -32,7 +32,7 @@ namespace Sirius.Parser.Charset {
 
 		private static readonly Lazy<CharsetGrammar> @default = new Lazy<CharsetGrammar>(() => new CharsetGrammar(), LazyThreadSafetyMode.PublicationOnly);
 
-		public static DfaStateMachine<LetterId, char> StateMachine => @default.Value.stateMachine;
+		public static DfaStateMachine<LetterId, char> LexerStateMachine => @default.Value.stateMachine;
 		public static LalrTable Table => @default.Value.table;
 
 		public static string ResolveSymbol(SymbolId symbol) {
