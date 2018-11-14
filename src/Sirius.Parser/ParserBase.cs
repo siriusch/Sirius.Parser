@@ -50,7 +50,7 @@ namespace Sirius.Parser {
 				nodes[i] = currentState.Node;
 				currentState = currentState.Parent;
 			}
-			var node = CreateNonterminal(rule, nodes);
+			var node = this.CreateNonterminal(rule, nodes);
 			// Get the next transition key based on the item being reduced (should exist as goto in the table) and push onto the stack
 			var topState = currentState.State;
 			var newState = ((GotoAction)this.table.Action[new StateKey<SymbolId>(topState, rule.ProductionSymbolId)]).NewState;
@@ -63,17 +63,17 @@ namespace Sirius.Parser {
 		}
 
 		public virtual void ProcessToken(SymbolId tokenSymbolId, Capture<TInput> tokenValue) {
-			if (CheckAndPreprocessTerminal(ref tokenSymbolId, ref tokenValue, out var position)) {
+			if (this.CheckAndPreprocessTerminal(ref tokenSymbolId, ref tokenValue, out var position)) {
 				var initialState = this.context.currentState;
 				for (;;) {
 					this.table.Action.TryGetValue(new StateKey<SymbolId>(this.context.currentState.State, tokenSymbolId), out var action);
 					// Get the action type. If action is null, default to the 'Error' action
 					switch (action) {
 					case ShiftAction shiftAction:
-						this.context.currentState = new ParserState<TAstNode>(CreateTerminal(tokenSymbolId, tokenValue, position), shiftAction.NewState, this.context.currentState);
+						this.context.currentState = new ParserState<TAstNode>(this.CreateTerminal(tokenSymbolId, tokenValue, position), shiftAction.NewState, this.context.currentState);
 						return;
 					case ReduceSingleAction reduceAction:
-						DoReduce(reduceAction.ProductionRule);
+						this.DoReduce(reduceAction.ProductionRule);
 						// Keep reducing before moving to the next token
 						continue;
 					case AcceptAction _:

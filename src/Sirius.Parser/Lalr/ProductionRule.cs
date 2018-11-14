@@ -11,7 +11,7 @@ namespace Sirius.Parser.Lalr {
 			this.RuleSymbolIds = ruleSymbolIds;
 		}
 
-		public ProductionKey Key => new ProductionKey(ProductionSymbolId, RuleSymbolIds);
+		public ProductionKey Key => new ProductionKey(this.ProductionSymbolId, this.RuleSymbolIds);
 
 		public SymbolId ProductionSymbolId {
 			get;
@@ -36,7 +36,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public override bool Equals(object obj) {
-			return Equals(obj as ProductionRule);
+			return this.Equals(obj as ProductionRule);
 		}
 
 		public override int GetHashCode() {
@@ -44,7 +44,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public override string ToString() {
-			return ToString(s => s.ToString());
+			return this.ToString(s => s.ToString());
 		}
 
 		public string ToString(Func<SymbolId, string> resolver) {

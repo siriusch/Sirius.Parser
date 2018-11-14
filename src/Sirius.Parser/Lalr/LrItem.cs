@@ -46,7 +46,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public override bool Equals(object obj) {
-			return Equals(obj as LrItem);
+			return this.Equals(obj as LrItem);
 		}
 
 		public override int GetHashCode() {
@@ -54,7 +54,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public override string ToString() {
-			return ToString(id => id.ToString());
+			return this.ToString(id => id.ToString());
 		}
 
 		public string ToString(Func<SymbolId, string> resolver) {

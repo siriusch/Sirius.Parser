@@ -195,8 +195,7 @@ namespace Sirius.Parser.Semantic {
 				if (errors.Count == 0) {
 					this.Symbols = this.symbolsByName.ToDictionary(p => p.Value, p => p.Key);
 					// Compute automata and table
-					AlphabetBuilder<TInput> alpha;
-					var dfa = lexerBuilder.ComputeDfa(out alpha);
+					var dfa = lexerBuilder.ComputeDfa(out var alpha, mapper.ValidLetters);
 					if (dfa.StartState.Id != default(Id<DfaState<LetterId>>)) {
 						errors.Add(new InvalidOperationException("Internal error: DFA start state is not default (0)"));
 					}

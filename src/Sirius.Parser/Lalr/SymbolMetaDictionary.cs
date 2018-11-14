@@ -33,7 +33,7 @@ namespace Sirius.Parser.Lalr {
 				var result = new HashSet<SymbolId>();
 				do {
 					result.UnionWith(this[enumerator.Current].FirstSet);
-				} while (IsNullable(enumerator.Current) && enumerator.MoveNext());
+				} while (this.IsNullable(enumerator.Current) && enumerator.MoveNext());
 				return result;
 			}
 		}
@@ -54,26 +54,26 @@ namespace Sirius.Parser.Lalr {
 					var productionSymbol = p.ProductionSymbolId;
 					var ruleSymbols = p.RuleSymbolIds;
 					// If all rule symbols are nullable (or rule is empty) => Nullable[productionSymbol] = true
-					if (ruleSymbols.All(IsNullable)) {
-						if (SetNullable(productionSymbol)) {
+					if (ruleSymbols.All(this.IsNullable)) {
+						if (this.SetNullable(productionSymbol)) {
 							changed = true;
 						}
 					}
 					for (var curr = 0; curr < ruleSymbols.Count; curr++) {
 						var next = curr + 1;
-						if (ruleSymbols.Take(curr).All(IsNullable)) {
+						if (ruleSymbols.Take(curr).All(this.IsNullable)) {
 							if (this[productionSymbol].FirstSet.AddRange(this[ruleSymbols[curr]].FirstSet)) {
 								changed = true;
 							}
 						}
-						if (ruleSymbols.Skip(next).All(IsNullable)) {
+						if (ruleSymbols.Skip(next).All(this.IsNullable)) {
 							if (this[ruleSymbols[curr]].FollowSet.AddRange(this[productionSymbol].FollowSet)) {
 								changed = true;
 							}
 						}
 						// If everything inbetween next and i is nullable then set Follow[ruleSymbol[curr]] += First[ruleSymbol[i]]
 						for (var i = next; i < ruleSymbols.Count; i++) {
-							if (!ruleSymbols.Skip(next).Take(i - next).All(IsNullable)) {
+							if (!ruleSymbols.Skip(next).Take(i - next).All(this.IsNullable)) {
 								continue;
 							}
 							if (this[ruleSymbols[curr]].FollowSet.AddRange(this[ruleSymbols[i]].FirstSet)) {

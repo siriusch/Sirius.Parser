@@ -12,14 +12,14 @@
     <copyright>Copyright 2018 Sirius Technologies AG</copyright>
     <tags>Sirius Parser</tags>
     <dependencies>
-      <dependency id="Sirius.Common" version="1.0.8" />
-      <dependency id="Sirius.RegularExpressions" version="1.0.7" />
+      <dependency id="Sirius.Common" version="1.0.12" />
+      <dependency id="Sirius.RegularExpressions" version="1.0.10" />
       <dependency id="Sirius.Parser" version="0.0.0" />
     </dependencies>
   </metadata>
   <files>
     <file src="bin\$Configuration$\Sirius.Parser.Grammars.dll" target="lib/net461" />
     <file src="bin\$Configuration$\Sirius.Parser.Grammars.pdb" target="lib/net461" />
-    <!--file src="bin\$Configuration$\Sirius.Parser.Grammars.xml" target="lib/net461" /-->
+    <file src="bin\$Configuration$\Sirius.Parser.Grammars.xml" target="lib/net461" />
   </files>
 </package>

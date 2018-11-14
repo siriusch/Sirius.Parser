@@ -15,7 +15,7 @@ namespace Sirius.Parser.Semantic {
 		}
 
 		protected override SymbolId? ProcessStateMachine(ref Id<DfaState<LetterId>> state, TInput input) {
-			return Grammar.LexerStateMachine(ref state, input);
+			return this.Grammar.LexerStateMachine(ref state, input);
 		}
 
 		public ParserContextBase<TAstNode, TInput, TPosition> Context {

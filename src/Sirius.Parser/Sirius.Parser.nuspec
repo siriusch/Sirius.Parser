@@ -12,12 +12,12 @@
 		<copyright>Copyright 2018 Sirius Technologies AG</copyright>
 		<tags>Sirius Parser</tags>
 		<dependencies>
-			<dependency id="Sirius.Common" version="1.0.8" />
+			<dependency id="Sirius.Common" version="1.0.12" />
 		</dependencies>
 	</metadata>
 	<files>
 		<file src="bin\$Configuration$\Sirius.Parser.dll" target="lib/net461"  />
 		<file src="bin\$Configuration$\Sirius.Parser.pdb" target="lib/net461" />
-		<!--file src="bin\$Configuration$\Sirius.Parser.xml" target="lib/net461" /-->
+		<file src="bin\$Configuration$\Sirius.Parser.xml" target="lib/net461" />
 	</files>
 </package>

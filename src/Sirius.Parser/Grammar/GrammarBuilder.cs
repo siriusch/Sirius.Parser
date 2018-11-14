@@ -42,11 +42,11 @@ namespace Sirius.Parser.Grammar {
 			set;
 		}
 
-		public IEnumerable<KeyValuePair<SymbolId, SymbolKind>> Symbols => this.AllSymbols ?? ComputeSymbols();
+		public IEnumerable<KeyValuePair<SymbolId, SymbolKind>> Symbols => this.AllSymbols ?? this.ComputeSymbols();
 		IEnumerable<KeyValuePair<SymbolId, SymbolIdSequence>> IGrammarData.Productions => this.productions.Values.SelectMany(p => p.Rules.Select(r => new KeyValuePair<SymbolId, SymbolIdSequence>(p.ProductionSymbolId, r)));
 
 		public void Add(SymbolId productionSymbolId, params SymbolId[] ruleSymbolIds) {
-			DefineProduction(productionSymbolId).Rules.Add(new SymbolIdSequence(ruleSymbolIds));
+			this.DefineProduction(productionSymbolId).Rules.Add(new SymbolIdSequence(ruleSymbolIds));
 		}
 
 		private IEnumerable<KeyValuePair<SymbolId, SymbolKind>> ComputeSymbols() {
@@ -69,8 +69,7 @@ namespace Sirius.Parser.Grammar {
 		}
 
 		public Production DefineProduction(SymbolId productionSymbolId) {
-			Production production;
-			if (!this.productions.TryGetValue(productionSymbolId, out production)) {
+			if (!this.productions.TryGetValue(productionSymbolId, out var production)) {
 				production = new Production(productionSymbolId);
 				this.productions.Add(productionSymbolId, production);
 			}

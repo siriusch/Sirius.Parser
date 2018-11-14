@@ -42,7 +42,7 @@ namespace Sirius.Parser.Lalr {
 				} else {
 					ownItem = new LrItem(item.Rule, item.Marker, item.IsKernel, item.LookaheadIds);
 					ownItemLookup.Add(ownItem, ownItem);
-					Add(ownItem);
+					this.Add(ownItem);
 					changed = true;
 				}
 			}
@@ -51,12 +51,12 @@ namespace Sirius.Parser.Lalr {
 
 		public void RemoveNonkernels() {
 			this.IsClosed = false;
-			RemoveWhere(i => !i.IsKernel); // Remove items with the marker on the left (except start symbol)
-			TrimExcess();
+			this.RemoveWhere(i => !i.IsKernel); // Remove items with the marker on the left (except start symbol)
+			this.TrimExcess();
 		}
 
 		public override string ToString() {
-			return ToString(i => i.ToString());
+			return this.ToString(i => i.ToString());
 		}
 
 		public string ToString(Func<SymbolId, string> resolver) {

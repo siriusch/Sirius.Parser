@@ -72,12 +72,12 @@ namespace Sirius.Parser {
 				var charsetPrintable = Codepoints.ValidBmp - UnicodeRanges.FromUnicodeCategory(UnicodeCategory.Control) - UnicodeRanges.InCombiningDiacriticalMarks;
 				var charsetAlphanumeric = UnicodeRanges.Letter | UnicodeRanges.Number;
 				var charset = new UnicodeCharSetProvider(new Dictionary<string, RangeSet<Codepoint>>() {
-						{"Parameter Ch", charsetPrintable - '\'' - '"'},
+						{"Parameter Ch", charsetPrintable - (Codepoint)'\'' - (Codepoint)'"'},
 						{"Nonterminal Ch", charsetAlphanumeric | '_' | '-' | '.' | ' '},
 						{"Terminal Ch", charsetAlphanumeric | '_' | '-' | '.'},
-						{"Literal Ch", charsetPrintable - '\''},
-						{"Set Literal Ch", charsetPrintable - '[' - ']' - '\''},
-						{"Set Name Ch", charsetPrintable - '{' - '}'},
+						{"Literal Ch", charsetPrintable - (Codepoint)'\''},
+						{"Set Literal Ch", charsetPrintable - (Codepoint)'[' - (Codepoint)']' - (Codepoint)'\''},
+						{"Set Name Ch", charsetPrintable - (Codepoint)'{' - (Codepoint)'}'},
 						{"Whitespace Ch", UnicodeRanges.SpaceSeparator | '\t' | '\v'}
 				});
 				this.DfaStateMachine = new LexerBuilder<char>(mapper, Utf16Chars.EOF, charset) {

@@ -13,10 +13,10 @@ namespace Sirius.Parser.Lalr {
 			if (ReferenceEquals(other, this)) {
 				return true;
 			}
-			if (other.GetType() != GetType()) {
+			if (other.GetType() != this.GetType()) {
 				return false;
 			}
-			return EqualsInternal(other);
+			return this.EqualsInternal(other);
 		}
 
 		public sealed override bool Equals(object obj) {
@@ -28,7 +28,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		public sealed override int GetHashCode() {
-			return GetType().GetHashCode()^HashCodeInternal();
+			return this.GetType().GetHashCode()^ this.HashCodeInternal();
 		}
 
 		protected virtual int HashCodeInternal() {

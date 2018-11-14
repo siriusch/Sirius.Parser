@@ -23,10 +23,10 @@ namespace Sirius.Parser.Lalr {
 		/// <param name="data">The data describing the grammar</param>
 		public LalrTableGenerator(IGrammarData data): base() {
 			this.symbols = data.Symbols.ToDictionary();
-			this.Unknown = AssertTerminal(data.Unknown, nameof(this.Unknown));
-			this.Eof = AssertTerminal(SymbolId.Eof, nameof(this.Eof));
-			this.Init = AssertNonterminal(data.Init, nameof(this.Init));
-			this.Start = AssertNonterminal(data.Start, nameof(this.Start));
+			this.Unknown = this.AssertTerminal(data.Unknown, nameof(this.Unknown));
+			this.Eof = this.AssertTerminal(SymbolId.Eof, nameof(this.Eof));
+			this.Init = this.AssertNonterminal(data.Init, nameof(this.Init));
+			this.Start = this.AssertNonterminal(data.Start, nameof(this.Start));
 			var productionKeys = new HashSet<ProductionKey>();
 			var productionRules = new List<ProductionRule>();
 			var productionRulesBySymbol = new Dictionary<SymbolId, List<ProductionRule>>();
@@ -93,7 +93,7 @@ namespace Sirius.Parser.Lalr {
 			foreach (var itemSet in itemSets) {
 				foreach (var sym in symbolMeta.Keys) {
 					// Compute dynamic GOTO
-					var gotoClosure = Lr1Closure(symbolMeta, new LrItemSet(itemSet
+					var gotoClosure = this.Lr1Closure(symbolMeta, new LrItemSet(itemSet
 						.Where(item => (item.Marker < item.Length) && item.Rule.RuleSymbolIds[item.Marker].Equals(sym))
 						.Select(item => new LrItem(item.Rule, item.Marker+1, true))));
 					if (!gotoClosure.Any()) {
@@ -113,7 +113,7 @@ namespace Sirius.Parser.Lalr {
 		}
 
 		private LrItemSetCollection ComputeItemSets(SymbolMetaDictionary symbolMeta, out int acceptIndex) {
-			ComputeLr0ItemSetKernelsAndGotoLookup(out var itemSets, out var gotoSymbol, out acceptIndex);
+			this.ComputeLr0ItemSetKernelsAndGotoLookup(out var itemSets, out var gotoSymbol, out acceptIndex);
 			var dummyLookahead = new[] { this.Unknown };
 			itemSets.StartState.Single().LookaheadIds.Add(this.Eof);
 			var rulePropagations = new Dictionary<StateKey<LrItem>, HashSet<StateKey<LrItem>>>();
@@ -124,7 +124,7 @@ namespace Sirius.Parser.Lalr {
 					// Create an item set with a dummy lookahead, based on the current item set
 					var dummyItem = new LrItem(kernelItem.Rule, kernelItem.Marker, kernelItem.Marker > 0, dummyLookahead);
 					var dummyItemSet = new LrItemSet(dummyItem.Yield());
-					var j = Lr1Closure(symbolMeta, dummyItemSet);
+					var j = this.Lr1Closure(symbolMeta, dummyItemSet);
 					foreach (var gotoForState in gotosForState) {
 						var gotoItemSet = itemSets[gotoForState.Value];
 						var gotoItemLookup = gotoItemSet.ToDictionary(g => g, g => g);
@@ -162,7 +162,7 @@ namespace Sirius.Parser.Lalr {
 			} while (changed);
 			// Close all kernels
 			for (var i = 0; i < itemSets.Count; i++) {
-				itemSets[i] = Lr1Closure(symbolMeta, itemSets[i]);
+				itemSets[i] = this.Lr1Closure(symbolMeta, itemSets[i]);
 				itemSets[i].Index = i;
 			}
 			return itemSets;
@@ -174,7 +174,7 @@ namespace Sirius.Parser.Lalr {
 			var itemSetByKernels = new Dictionary<IEnumerable<LrItem>, LrItemSet>(SetEqualityComparer<LrItem>.Default);
 			var queue = new Queue<LrItemSet>();
 			var startItem = new LrItemSet(new LrItem(this.ProductionRulesBySymbol[this.Init].Single(), 0, true));
-			Lr0ComputeClosureNonterminals(startItem);
+			this.Lr0ComputeClosureNonterminals(startItem);
 			itemSets.StartState = startItem;
 			acceptIndex = this.ProductionRulesBySymbol[this.Init].Single().Index;
 			startItem.Index = itemSets.Count;
@@ -183,13 +183,13 @@ namespace Sirius.Parser.Lalr {
 			queue.Enqueue(startItem);
 			while (queue.Count > 0) {
 				var itemSet = queue.Dequeue();
-				var gotoLookup = Lr0GotoKernels(itemSet);
+				var gotoLookup = this.Lr0GotoKernels(itemSet);
 				var gotosForState = new Dictionary<SymbolId, int>();
 				gotos.Add(itemSet.Index, gotosForState);
 				foreach (var symbol in gotoLookup.Keys) {
 					if (!itemSetByKernels.TryGetValue(gotoLookup[symbol].Kernels, out var gotoState)) {
 						gotoState = gotoLookup[symbol];
-						Lr0ComputeClosureNonterminals(gotoState);
+						this.Lr0ComputeClosureNonterminals(gotoState);
 						gotoState.Index = itemSets.Count;
 						itemSets.Add(gotoState);
 						itemSetByKernels.Add(gotoState.Kernels.ToArray(), gotoState);
@@ -203,8 +203,8 @@ namespace Sirius.Parser.Lalr {
 		public LalrTable ComputeTable() {
 			var symbolMeta = new SymbolMetaDictionary(this.symbols);
 			symbolMeta.ComputeFirstFollowsAndNullable(this.Start, this.Eof, this.ProductionRules);
-			var states = ComputeItemSets(symbolMeta, out var acceptIndex);
-			var gotoLookup = ComputeGotoLookup(symbolMeta, states);
+			var states = this.ComputeItemSets(symbolMeta, out var acceptIndex);
+			var gotoLookup = this.ComputeGotoLookup(symbolMeta, states);
 			var actionTable = new Dictionary<StateKey<SymbolId>, LalrAction>();
 			foreach (var state in states) {
 				foreach (var sym in this.symbols) {
@@ -249,12 +249,12 @@ namespace Sirius.Parser.Lalr {
 				return;
 			}
 			// Initialize the set with the next symbol at each marker
-			var nonterminalSet = new HashSet<SymbolId>(MarkedSymbols(itemSet).Where(IsNonterminal));
+			var nonterminalSet = new HashSet<SymbolId>(MarkedSymbols(itemSet).Where(this.IsNonterminal));
 			var queue = new Queue<SymbolId>(nonterminalSet);
 			while (queue.Count > 0) {
 				var current = queue.Dequeue();
 				// Get the first nonterminal from rules starting with these
-				foreach (var nonterminal in FirstSymbols(this.ProductionRulesBySymbol[current]).Where(IsNonterminal).Distinct()) {
+				foreach (var nonterminal in FirstSymbols(this.ProductionRulesBySymbol[current]).Where(this.IsNonterminal).Distinct()) {
 					if (nonterminalSet.Add(nonterminal)) {
 						// New production, add it to the closure
 						queue.Enqueue(nonterminal);
